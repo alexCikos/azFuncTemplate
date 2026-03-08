@@ -1,3 +1,6 @@
+// mapInvoiceFields.ts - Function to map raw SharePoint list item fields to a structured InvoiceReminderItem object
+
+// The InvoiceReminderItem type defines the structure of the cleaned and mapped invoice data that will be used in the business logic, such as sending reminder emails. It includes fields like InvoiceNumber, ClientName, DueDate, TotalAmount, and more, all of which are optional to handle potential missing data gracefully.
 export type InvoiceReminderItem = {
   InvoiceNumber?: string;
   ClientName?: string;
@@ -34,6 +37,7 @@ export type InvoiceReminderItem = {
   Modified?: string;
 };
 
+// Helper function to read a string value from a raw field, trimming whitespace and returning undefined for empty strings.
 function readString(value: unknown): string | undefined {
   if (typeof value !== "string") {
     return undefined;
@@ -47,6 +51,7 @@ function readString(value: unknown): string | undefined {
   return trimmed;
 }
 
+// Helper function to read a number value from a raw field, handling both number and string types and returning undefined for invalid numbers.
 function readNumber(value: unknown): number | undefined {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;

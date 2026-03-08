@@ -1,7 +1,9 @@
-import { mapInvoiceFields, type InvoiceReminderItem } from "./mapInvoiceFields";
+// sharepointClient.ts - Client for reading items from a SharePoint list via Microsoft Graph API
 
-// Filter to get only overdue invoices based on the "Status" field in SharePoint. This is used in the OData $filter query parameter when calling Microsoft Graph to read list items. Adjust the field name and value as needed to match your SharePoint list schema and business logic.
-const OVERDUE_INVOICE_FILTER = "fields/field_13 eq 'Overdue'";
+import {
+  mapInvoiceFields,
+  type InvoiceReminderItem,
+} from "../mapper/mapInvoiceFields";
 
 // The type of the raw SharePoint list item is not well-defined, so we use a flexible type with optional fields
 type SharePointItem = {
@@ -11,6 +13,7 @@ type SharePointItem = {
 // This function reads items from a SharePoint list using the Microsoft Graph API, applying a filter to get only the overdue invoices. It then maps the raw SharePoint fields to a cleaner format with business-friendly names.
 export async function getSharePointListItems(
   graphAccessToken: string,
+  filter: string,
 ): Promise<InvoiceReminderItem[]> {
   // Config is read from environment to keep secrets/IDs out of source control.
   const siteId = process.env.SHAREPOINT_SITE_ID!;
@@ -25,7 +28,7 @@ export async function getSharePointListItems(
 
   // Use OData query parameters to expand the fields and filter to only the overdue invoices.
   listEndpoint.searchParams.set("$expand", "fields");
-  listEndpoint.searchParams.set("$filter", OVERDUE_INVOICE_FILTER);
+  listEndpoint.searchParams.set("$filter", filter);
 
   // Microsoft Graph call: caller provides a valid app-only access token.
   const listResponse = await fetch(listEndpoint, {
@@ -57,5 +60,3 @@ export async function getSharePointListItems(
   // Return the cleaned + renamed list items to the caller, which will handle the business logic (e.g. sending reminder emails).
   return renamedFields;
 }
-
-export { OVERDUE_INVOICE_FILTER };

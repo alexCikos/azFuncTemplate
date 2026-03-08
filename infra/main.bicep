@@ -1,3 +1,5 @@
+// main.bicep - Bicep template for deploying Azure resources for the Invoice Tracker application, including a Function App, Storage Account, Key Vault, Log Analytics Workspace, and Application Insights. The template also sets up necessary configurations and permissions for the Function App to interact with Key Vault and Microsoft Graph API.
+
 targetScope = 'resourceGroup'
 
 @description('Azure region for all resources')
