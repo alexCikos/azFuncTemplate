@@ -98,8 +98,10 @@ These values are deployed by Bicep from `infra/main.parameters.<env>.json`:
 - `GRAPH_TENANT_ID`
 - `GRAPH_CLIENT_ID`
 - `GRAPH_CLIENT_SECRET` (Key Vault reference)
+- `GRAPH_SCOPE`
 - `SHAREPOINT_SITE_ID`
 - `SHAREPOINT_LIST_ID`
+- `SHARED_MAILBOX`
 
 ## 6) Local Development
 
@@ -118,7 +120,19 @@ npm run start
 Test endpoint:
 
 ```bash
-curl "http://localhost:7071/api/overdue-invoice-reminder"
+curl -X POST "http://localhost:7071/api/send-overdue-reminder-email"
+```
+
+Optional filter examples:
+
+```bash
+curl -X POST "http://localhost:7071/api/send-overdue-reminder-email?filter=Balance gt 0"
+```
+
+```bash
+curl -X POST "http://localhost:7071/api/send-overdue-reminder-email" \
+  -H "Content-Type: application/json" \
+  -d '{"filter":"Balance gt 0"}'
 ```
 
 ## 7) Next

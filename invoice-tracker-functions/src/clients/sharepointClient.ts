@@ -21,16 +21,17 @@ type SharePointItem = {
  *
  * @param graphAccessToken A valid Microsoft Graph access token with permission to read the SharePoint list.
  * @param filter The OData filter expression used to limit which SharePoint list items are returned.
+ * Use SharePoint internal field names in this filter because the business-friendly field names are applied only after the Graph response is mapped.
+ * @param siteId The ID of the SharePoint site containing the list.
+ * @param listId The ID of the SharePoint list to read items from.
  * @returns A promise that resolves to cleaned invoice reminder records mapped from the SharePoint response.
  */
 export async function getSharePointListItems(
   graphAccessToken: string,
   filter: string,
+  siteId: string,
+  listId: string,
 ): Promise<InvoiceReminderItem[]> {
-  // Config is read from environment to keep secrets/IDs out of source control.
-  const siteId = process.env.SHAREPOINT_SITE_ID!;
-  const listId = process.env.SHAREPOINT_LIST_ID!;
-
   // Construct the Microsoft Graph API endpoint for reading items from a SharePoint list.
   const listEndpoint = new URL(
     `https://graph.microsoft.com/v1.0/sites/${encodeURIComponent(
@@ -38,9 +39,11 @@ export async function getSharePointListItems(
     )}/lists/${encodeURIComponent(listId)}/items`,
   );
 
-  // Use OData query parameters to expand the fields and filter to only the overdue invoices.
+  // Expand raw SharePoint fields so they can be mapped after the Graph response is returned.
   listEndpoint.searchParams.set("$expand", "fields");
-  listEndpoint.searchParams.set("$filter", filter);
+  if (filter) {
+    listEndpoint.searchParams.set("$filter", filter);
+  }
 
   // Microsoft Graph call: caller provides a valid app-only access token.
   const listResponse = await fetch(listEndpoint, {

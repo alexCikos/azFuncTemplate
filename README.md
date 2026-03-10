@@ -22,11 +22,11 @@ Implemented now:
 
 - Azure infrastructure for a Linux Function App, Storage Account, Key Vault, Log Analytics, Application Insights, and a user-assigned managed identity
 - GitHub Actions workflows for validation and environment-based deployment
-- Graph token acquisition helper
-- SharePoint client for reading list items
+- Graph token acquisition helper that accepts explicit config
+- SharePoint client for reading list items with explicit IDs and filter input
 - Email client for Graph `sendMail`
 - Mapping layer for converting SharePoint internal fields into invoice-friendly names
-- Scaffolded Azure Function entrypoint for the overdue reminder flow
+- Scaffolded Azure Function handler and workflow contract for the overdue reminder flow
 
 Still in progress:
 
@@ -43,6 +43,12 @@ The repo is structured around a thin-handler pattern.
 - `clients/` holds external I/O code for Graph and SharePoint access
 - `tools/` holds shared low-level helpers such as auth/token acquisition
 - `mapper/` holds transformations from raw SharePoint fields to application-friendly objects
+
+In the current scaffold:
+
+- the Azure Function handler reads `process.env`, validates request input, and wires dependencies
+- the workflow receives typed input plus injected dependencies
+- the clients and token helper operate on explicit parameters instead of reading runtime settings directly
 
 This keeps transport concerns, business logic, integration logic, and data transformation from collapsing into a single file.
 
@@ -126,6 +132,22 @@ The current HTTP function scaffold can be invoked locally with:
 ```bash
 curl -X POST http://localhost:7071/api/send-overdue-reminder-email
 ```
+
+Optional filter via query string:
+
+```bash
+curl -X POST "http://localhost:7071/api/send-overdue-reminder-email?filter=Balance gt 0"
+```
+
+Optional filter via JSON body:
+
+```bash
+curl -X POST "http://localhost:7071/api/send-overdue-reminder-email" \
+  -H "Content-Type: application/json" \
+  -d '{"filter":"Balance gt 0"}'
+```
+
+At the moment, the endpoint returns a scaffolded `not_implemented` workflow result. It does not yet fetch SharePoint data or send emails.
 
 ## Azure Deployment
 

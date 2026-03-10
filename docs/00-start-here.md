@@ -17,10 +17,11 @@ Deployment path:
 4. Function code is built and deployed as zip.
 
 Runtime path:
-1. Function reads app settings.
-2. `GRAPH_CLIENT_SECRET` is resolved from Key Vault.
-3. Function gets Graph app-only token.
-4. Function reads SharePoint list items.
+1. Function handler reads app settings and request input.
+2. Handler builds explicit workflow dependencies and input.
+3. Workflow requests a Graph app-only token through the injected helper.
+4. Workflow calls SharePoint and email clients through injected dependencies.
+5. Clients use explicit parameters instead of reading `process.env`.
 
 ## Identity Separation (Critical)
 
@@ -35,4 +36,3 @@ Do not collapse these into one identity in client environments.
 
 Continue with:
 - [01 - Bootstrap Dev Environment](./01-bootstrap-dev.md)
-

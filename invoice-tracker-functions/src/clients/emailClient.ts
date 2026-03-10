@@ -6,10 +6,25 @@
  * Parameters required to send a plain-text email through Microsoft Graph.
  */
 export type SendEmailArgs = {
+  /**
+   * App-only bearer token used to authorize the Graph `sendMail` request.
+   */
   graphAccessToken: string;
+  /**
+   * Mailbox that will appear as the sender of the reminder email.
+   */
   senderMailbox: string;
+  /**
+   * Recipient email address for the reminder message.
+   */
   recipientEmail: string;
+  /**
+   * Subject line shown to the recipient.
+   */
   subject: string;
+  /**
+   * Plain-text body content sent in the reminder email.
+   */
   bodyText: string;
 };
 
@@ -51,6 +66,8 @@ export async function sendEmail(args: SendEmailArgs): Promise<void> {
     body: JSON.stringify(payload),
   });
 
+  // Graph `sendMail` accepts the request asynchronously and returns 202 when
+  // the message has been queued successfully.
   if (response.status !== 202) {
     const errorBody = await response.text();
     throw new Error(

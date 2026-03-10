@@ -43,8 +43,10 @@ When you clone this repo for a new client, you should be able to:
   - Deploys infra and function code to `prod`.
 - `.github/workflows/validate-template.yml`
   - PR validation workflow (TypeScript + Bicep syntax checks).
-- `invoice-tracker-functions/src/functions/hello.ts`
-  - Sample HTTP function showing runtime configuration usage.
+- `invoice-tracker-functions/src/functions/sendOverdueReminderEmails.ts`
+  - HTTP trigger that reads runtime settings, parses request input, and wires the overdue reminder workflow scaffold.
+- `invoice-tracker-functions/src/functions/sendOverdueReminderEmails/runOverdueReminderEmailsWorkflow.ts`
+  - Workflow contract showing injected dependencies, typed input, and placeholder result handling.
 - `sample-data/invoice-tracker-au-sharepoint-import.xlsx`
   - SharePoint import-ready demo data with reminder-control columns.
 - `sample-data/invoice-tracker-au-sharepoint-import.csv`
@@ -372,20 +374,34 @@ Checks:
 
 ## 9. Runtime Configuration in App Code
 
-`hello.ts` demonstrates reading infra-driven app settings:
+`sendOverdueReminderEmails.ts` demonstrates the thin-handler pattern:
 
-- `CLIENT_CODE`
-- `ENVIRONMENT_NAME`
+- reads runtime settings from `process.env`
+- parses the optional request filter from query string or JSON body
+- builds explicit workflow input and injected dependencies
+- delegates to the feature workflow without embedding business logic in the handler
 
-`sharepointListTest.ts` demonstrates reading Graph + SharePoint integration settings:
+The current runtime settings used by the scaffold are:
 
 - `GRAPH_TENANT_ID`
 - `GRAPH_CLIENT_ID`
 - `GRAPH_CLIENT_SECRET`
+- `GRAPH_SCOPE`
 - `SHAREPOINT_SITE_ID`
 - `SHAREPOINT_LIST_ID`
+- `SHARED_MAILBOX`
 
-This teaches how Bicep app settings flow into runtime behavior.
+`runOverdueReminderEmailsWorkflow.ts` demonstrates the orchestration contract:
+
+- `RunOverdueReminderEmailsWorkflowDeps`
+- `RunOverdueReminderEmailsWorkflowInput`
+- `RunOverdueReminderEmailsWorkflowResult`
+
+`getGraphAccessToken.ts`, `sharepointClient.ts`, and `emailClient.ts` show the supporting pattern:
+
+- the handler owns `process.env`
+- the workflow receives typed input plus injected dependencies
+- the clients and token helper receive explicit parameters instead of reading runtime settings directly
 
 Local test:
 
@@ -398,19 +414,17 @@ npm run start
 Examples:
 
 ```bash
-curl "http://localhost:7071/api/hello?name=Alex"
+curl -X POST "http://localhost:7071/api/send-overdue-reminder-email"
 ```
 
 ```bash
-curl -X POST "http://localhost:7071/api/hello" \
+curl -X POST "http://localhost:7071/api/send-overdue-reminder-email?filter=Balance gt 0"
+```
+
+```bash
+curl -X POST "http://localhost:7071/api/send-overdue-reminder-email" \
   -H "Content-Type: application/json" \
-  -d '{"name":"Alex"}'
-```
-
-Graph/SharePoint connectivity test endpoint:
-
-```bash
-curl "http://localhost:7071/api/sharepoint-list-test?top=3"
+  -d '{"filter":"Balance gt 0"}'
 ```
 
 ---
