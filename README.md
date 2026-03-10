@@ -26,12 +26,12 @@ Implemented now:
 - SharePoint client for reading list items with explicit IDs and filter input
 - Email client for Graph `sendMail`
 - Mapping layer for converting SharePoint internal fields into invoice-friendly names
-- Scaffolded Azure Function handler and workflow contract for the overdue reminder flow
+- Azure Function handler and workflow for the overdue reminder flow
 
 Still in progress:
 
-- Full overdue reminder workflow orchestration
 - Business rules for filtering, pacing, and duplicate-send protection
+- Delivery confirmation beyond Graph request acceptance
 - More complete tests around workflow behavior
 
 ## Architecture
@@ -44,10 +44,11 @@ The repo is structured around a thin-handler pattern.
 - `tools/` holds shared low-level helpers such as auth/token acquisition
 - `mapper/` holds transformations from raw SharePoint fields to application-friendly objects
 
-In the current scaffold:
+In the current implementation:
 
 - the Azure Function handler reads `process.env`, validates request input, and wires dependencies
 - the workflow receives typed input plus injected dependencies
+- the workflow reads SharePoint items, skips rows without `ClientEmail`, and reports matched/sent/skipped/failed counts
 - the clients and token helper operate on explicit parameters instead of reading runtime settings directly
 
 This keeps transport concerns, business logic, integration logic, and data transformation from collapsing into a single file.
@@ -127,7 +128,7 @@ The function app reads runtime configuration from `invoice-tracker-functions/loc
 - `SHAREPOINT_LIST_ID`
 - `SHARED_MAILBOX`
 
-The current HTTP function scaffold can be invoked locally with:
+The current HTTP function can be invoked locally with:
 
 ```bash
 curl -X POST http://localhost:7071/api/send-overdue-reminder-email
@@ -136,7 +137,7 @@ curl -X POST http://localhost:7071/api/send-overdue-reminder-email
 Optional filter via query string:
 
 ```bash
-curl -X POST "http://localhost:7071/api/send-overdue-reminder-email?filter=Balance gt 0"
+curl -X POST "http://localhost:7071/api/send-overdue-reminder-email?filter=fields/field_13 eq 'Overdue'"
 ```
 
 Optional filter via JSON body:
@@ -144,10 +145,12 @@ Optional filter via JSON body:
 ```bash
 curl -X POST "http://localhost:7071/api/send-overdue-reminder-email" \
   -H "Content-Type: application/json" \
-  -d '{"filter":"Balance gt 0"}'
+  -d '{"filter":"fields/field_13 eq '\''Overdue'\''"}'
 ```
 
-At the moment, the endpoint returns a scaffolded `not_implemented` workflow result. It does not yet fetch SharePoint data or send emails.
+The endpoint returns a workflow summary with `status`, `matchedCount`, `sentCount`, `skippedCount`, and `failedCount`.
+
+`sentCount` reflects Graph `sendMail` requests accepted with HTTP `202`. It does not guarantee final mailbox delivery.
 
 ## Azure Deployment
 
@@ -189,7 +192,6 @@ This project is intended to support multiple automation flows, not just one endp
 
 ## Next Steps
 
-- Complete the overdue reminder workflow implementation
 - Add workflow-level tests around decision logic
 - Introduce idempotency safeguards to reduce duplicate sends
 - Improve operational visibility with richer logs and alerts

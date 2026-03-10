@@ -1,6 +1,6 @@
 # Invoice Reminder Module
 
-This folder contains the current scaffold for the overdue reminder email feature.
+This folder contains the overdue reminder email feature implementation and its workflow contract.
 
 ## Files
 
@@ -8,8 +8,8 @@ This folder contains the current scaffold for the overdue reminder email feature
   - HTTP trigger entrypoint.
   - Reads `process.env`, validates request input, and builds workflow dependencies.
 - `runOverdueReminderEmailsWorkflow.ts`
-  - Feature workflow scaffold.
-  - Defines the dependency contract, workflow input, and placeholder result shape.
+  - Feature workflow.
+  - Defines the dependency contract, workflow input, and execution summary result shape.
 - `../../tools/getGraphAccessToken.ts`
   - Requests a Microsoft Graph token from explicit config values.
 - `../../clients/sharepointClient.ts`
@@ -28,7 +28,7 @@ That handler currently:
 - reads runtime settings such as `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `SHAREPOINT_SITE_ID`, and `SHARED_MAILBOX`
 - accepts an optional `filter` from the query string or JSON body
 - injects `getGraphAccessToken`, `getSharePointListItems`, and `sendEmail` into the workflow
-- returns a scaffolded `not_implemented` workflow result
+- returns a workflow summary with matched, sent, skipped, and failed counts
 
 ## Flow Diagram
 
@@ -38,20 +38,22 @@ flowchart TD
   B --> C["Read app settings + request filter"]
   C --> D["Build workflow input + injected deps"]
   D --> E["runOverdueReminderEmailsWorkflow"]
-  E --> F["Scaffold result: status='not_implemented'"]
-  F --> G["HTTP JSON response"]
+  E --> F["Graph token + SharePoint read + sendMail calls"]
+  F --> G["Workflow summary result"]
+  G --> H["HTTP JSON response"]
 ```
 
 ## Current Pattern
 
 - The Azure Function handler owns `process.env` access and HTTP concerns.
 - The workflow receives typed input and injected dependencies.
+- Filters passed to the SharePoint client must use internal field names such as `field_13`.
+- The workflow summary reports accepted send requests, not guaranteed mailbox delivery.
 - The clients and token helper use explicit parameters and stay independent from Azure Function runtime globals.
-- The business reminder rules are not implemented yet.
 
 ## Update Workflow
 
-1. Implement the reminder rules inside `runOverdueReminderEmailsWorkflow.ts`.
+1. Refine the reminder rules inside `runOverdueReminderEmailsWorkflow.ts`.
 2. Decide how the workflow will build reminder email subject/body per invoice.
 3. Call the injected `getGraphAccessToken`, `getSharePointListItems`, and `sendEmail` dependencies from the workflow.
 4. Run `npm run typecheck` from `invoice-tracker-functions`.

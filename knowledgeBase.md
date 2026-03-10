@@ -44,9 +44,9 @@ When you clone this repo for a new client, you should be able to:
 - `.github/workflows/validate-template.yml`
   - PR validation workflow (TypeScript + Bicep syntax checks).
 - `invoice-tracker-functions/src/functions/sendOverdueReminderEmails.ts`
-  - HTTP trigger that reads runtime settings, parses request input, and wires the overdue reminder workflow scaffold.
+  - HTTP trigger that reads runtime settings, parses request input, and wires the overdue reminder workflow.
 - `invoice-tracker-functions/src/functions/sendOverdueReminderEmails/runOverdueReminderEmailsWorkflow.ts`
-  - Workflow contract showing injected dependencies, typed input, and placeholder result handling.
+  - Workflow implementation showing injected dependencies, typed input, and execution summary handling.
 - `sample-data/invoice-tracker-au-sharepoint-import.xlsx`
   - SharePoint import-ready demo data with reminder-control columns.
 - `sample-data/invoice-tracker-au-sharepoint-import.csv`
@@ -381,7 +381,7 @@ Checks:
 - builds explicit workflow input and injected dependencies
 - delegates to the feature workflow without embedding business logic in the handler
 
-The current runtime settings used by the scaffold are:
+The current runtime settings used by the workflow are:
 
 - `GRAPH_TENANT_ID`
 - `GRAPH_CLIENT_ID`
@@ -391,7 +391,7 @@ The current runtime settings used by the scaffold are:
 - `SHAREPOINT_LIST_ID`
 - `SHARED_MAILBOX`
 
-`runOverdueReminderEmailsWorkflow.ts` demonstrates the orchestration contract:
+`runOverdueReminderEmailsWorkflow.ts` demonstrates the orchestration contract and result summary:
 
 - `RunOverdueReminderEmailsWorkflowDeps`
 - `RunOverdueReminderEmailsWorkflowInput`
@@ -401,6 +401,7 @@ The current runtime settings used by the scaffold are:
 
 - the handler owns `process.env`
 - the workflow receives typed input plus injected dependencies
+- the workflow reads SharePoint items, skips rows without recipient email, and reports matched/sent/skipped/failed counts
 - the clients and token helper receive explicit parameters instead of reading runtime settings directly
 
 Local test:
@@ -418,14 +419,18 @@ curl -X POST "http://localhost:7071/api/send-overdue-reminder-email"
 ```
 
 ```bash
-curl -X POST "http://localhost:7071/api/send-overdue-reminder-email?filter=Balance gt 0"
+curl -X POST "http://localhost:7071/api/send-overdue-reminder-email?filter=fields/field_13 eq 'Overdue'"
 ```
 
 ```bash
 curl -X POST "http://localhost:7071/api/send-overdue-reminder-email" \
   -H "Content-Type: application/json" \
-  -d '{"filter":"Balance gt 0"}'
+  -d '{"filter":"fields/field_13 eq '\''Overdue'\''"}'
 ```
+
+Notes:
+- Filters sent to Microsoft Graph must use SharePoint internal field names such as `field_13`.
+- `sentCount` means Graph accepted the `sendMail` request with HTTP `202`; it is not a guaranteed final delivery count.
 
 ---
 

@@ -126,14 +126,18 @@ curl -X POST "http://localhost:7071/api/send-overdue-reminder-email"
 Optional filter examples:
 
 ```bash
-curl -X POST "http://localhost:7071/api/send-overdue-reminder-email?filter=Balance gt 0"
+curl -X POST "http://localhost:7071/api/send-overdue-reminder-email?filter=fields/field_13 eq 'Overdue'"
 ```
 
 ```bash
 curl -X POST "http://localhost:7071/api/send-overdue-reminder-email" \
   -H "Content-Type: application/json" \
-  -d '{"filter":"Balance gt 0"}'
+  -d '{"filter":"fields/field_13 eq '\''Overdue'\''"}'
 ```
+
+Notes:
+- Filters must use SharePoint internal field names such as `field_13`, not mapped business names such as `Status`.
+- The workflow response reports Graph requests accepted for delivery. It does not confirm that the email reached the final mailbox.
 
 ## 7) Next
 
