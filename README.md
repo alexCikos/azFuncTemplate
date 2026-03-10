@@ -62,15 +62,15 @@ flowchart LR
 
 - `infra/`
   - Bicep template and per-environment parameter files
-- `my-func-api/`
+- `invoice-tracker-functions/`
   - Azure Functions application
-- `my-func-api/src/functions/`
+- `invoice-tracker-functions/src/functions/`
   - Function handlers and feature-local workflow folders
-- `my-func-api/src/clients/`
+- `invoice-tracker-functions/src/clients/`
   - Graph-backed integration clients
-- `my-func-api/src/tools/`
+- `invoice-tracker-functions/src/tools/`
   - Shared helper modules
-- `my-func-api/src/mapper/`
+- `invoice-tracker-functions/src/mapper/`
   - SharePoint-to-domain mapping code
 - `docs/`
   - Step-by-step setup, deployment, troubleshooting, and handover notes
@@ -80,12 +80,12 @@ flowchart LR
 ## Key Files
 
 - [infra/main.bicep](./infra/main.bicep)
-- [my-func-api/src/functions/sendOverdueReminderEmails.ts](./my-func-api/src/functions/sendOverdueReminderEmails.ts)
-- [my-func-api/src/functions/sendOverdueReminderEmails/runOverdueReminderEmailsWorkflow.ts](./my-func-api/src/functions/sendOverdueReminderEmails/runOverdueReminderEmailsWorkflow.ts)
-- [my-func-api/src/clients/sharepointClient.ts](./my-func-api/src/clients/sharepointClient.ts)
-- [my-func-api/src/clients/emailClient.ts](./my-func-api/src/clients/emailClient.ts)
-- [my-func-api/src/tools/getGraphAccessToken.ts](./my-func-api/src/tools/getGraphAccessToken.ts)
-- [my-func-api/src/mapper/mapInvoiceFields.ts](./my-func-api/src/mapper/mapInvoiceFields.ts)
+- [invoice-tracker-functions/src/functions/sendOverdueReminderEmails.ts](./invoice-tracker-functions/src/functions/sendOverdueReminderEmails.ts)
+- [invoice-tracker-functions/src/functions/sendOverdueReminderEmails/runOverdueReminderEmailsWorkflow.ts](./invoice-tracker-functions/src/functions/sendOverdueReminderEmails/runOverdueReminderEmailsWorkflow.ts)
+- [invoice-tracker-functions/src/clients/sharepointClient.ts](./invoice-tracker-functions/src/clients/sharepointClient.ts)
+- [invoice-tracker-functions/src/clients/emailClient.ts](./invoice-tracker-functions/src/clients/emailClient.ts)
+- [invoice-tracker-functions/src/tools/getGraphAccessToken.ts](./invoice-tracker-functions/src/tools/getGraphAccessToken.ts)
+- [invoice-tracker-functions/src/mapper/mapInvoiceFields.ts](./invoice-tracker-functions/src/mapper/mapInvoiceFields.ts)
 - [scripts/bootstrap-client.sh](./scripts/bootstrap-client.sh)
 
 ## Local Development
@@ -106,12 +106,12 @@ nvm use
 Install and run the function app:
 
 ```bash
-cd my-func-api
+cd invoice-tracker-functions
 npm ci
 npm run start
 ```
 
-The function app reads runtime configuration from `my-func-api/local.settings.json` when running locally. The main settings used by the current integration layer are:
+The function app reads runtime configuration from `invoice-tracker-functions/local.settings.json` when running locally. The main settings used by the current integration layer are:
 
 - `GRAPH_TENANT_ID`
 - `GRAPH_CLIENT_ID`

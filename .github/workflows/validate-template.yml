@@ -21,14 +21,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: my-func-api/package-lock.json
+          cache-dependency-path: invoice-tracker-functions/package-lock.json
 
       - name: Install dependencies
-        working-directory: my-func-api
+        working-directory: invoice-tracker-functions
         run: npm ci
 
       - name: TypeScript checks
-        working-directory: my-func-api
+        working-directory: invoice-tracker-functions
         run: |
           npm run typecheck
           npm run build

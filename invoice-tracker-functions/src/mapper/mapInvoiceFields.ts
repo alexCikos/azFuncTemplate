@@ -1,6 +1,12 @@
-// mapInvoiceFields.ts - Function to map raw SharePoint list item fields to a structured InvoiceReminderItem object
+/**
+ * Mapping helpers for converting raw SharePoint list fields into the invoice
+ * reminder shape used by the application.
+ */
 
-// The InvoiceReminderItem type defines the structure of the cleaned and mapped invoice data that will be used in the business logic, such as sending reminder emails. It includes fields like InvoiceNumber, ClientName, DueDate, TotalAmount, and more, all of which are optional to handle potential missing data gracefully.
+/**
+ * Normalized invoice data used by the reminder workflow after SharePoint field
+ * names have been translated into business-friendly names.
+ */
 export type InvoiceReminderItem = {
   InvoiceNumber?: string;
   ClientName?: string;
@@ -37,7 +43,13 @@ export type InvoiceReminderItem = {
   Modified?: string;
 };
 
-// Helper function to read a string value from a raw field, trimming whitespace and returning undefined for empty strings.
+/**
+ * Reads a string field value and normalizes empty or whitespace-only values to
+ * `undefined`.
+ *
+ * @param value The raw field value from SharePoint.
+ * @returns A trimmed string when the value is usable, otherwise `undefined`.
+ */
 function readString(value: unknown): string | undefined {
   if (typeof value !== "string") {
     return undefined;
@@ -51,7 +63,12 @@ function readString(value: unknown): string | undefined {
   return trimmed;
 }
 
-// Helper function to read a number value from a raw field, handling both number and string types and returning undefined for invalid numbers.
+/**
+ * Reads a numeric field value from a raw SharePoint field.
+ *
+ * @param value The raw field value from SharePoint.
+ * @returns A finite number when the value can be parsed, otherwise `undefined`.
+ */
 function readNumber(value: unknown): number | undefined {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -67,7 +84,12 @@ function readNumber(value: unknown): number | undefined {
   return undefined;
 }
 
-// Map SharePoint internal keys (field_*) to readable business names.
+/**
+ * Maps raw SharePoint field names to the normalized invoice reminder model.
+ *
+ * @param rawFields The raw `fields` object returned by the SharePoint list item response.
+ * @returns A normalized invoice reminder object with business-friendly property names.
+ */
 export function mapInvoiceFields(
   rawFields: Record<string, unknown>,
 ): InvoiceReminderItem {

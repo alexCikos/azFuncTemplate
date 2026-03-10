@@ -1,7 +1,7 @@
 {
-  "name": "invoice-tracker-function-api",
+  "name": "invoice-tracker-functions",
   "version": "1.0.0",
-  "description": "Azure Functions API for the Invoice Tracker demo",
+  "description": "Azure Functions app for the Invoice Tracker demo",
   "private": true,
   "main": "dist/src/functions/*.js",
   "scripts": {

@@ -1,4 +1,10 @@
-// sendOverdueReminderEmails.ts - Azure Function to send overdue reminder emails based on SharePoint list data
+/**
+ * HTTP-triggered Azure Function for starting the overdue reminder email flow.
+ *
+ * The current implementation is a placeholder that logs the invocation and
+ * returns a success response until the SharePoint lookup and email delivery
+ * steps are wired in.
+ */
 
 import {
   app,
@@ -7,6 +13,13 @@ import {
   InvocationContext,
 } from "@azure/functions";
 
+/**
+ * Handles POST requests for the overdue reminder email endpoint.
+ *
+ * @param req The incoming HTTP request that triggers the reminder workflow.
+ * @param context The Azure Functions invocation context used for logging and runtime metadata.
+ * @returns A successful HTTP response confirming the placeholder workflow was invoked.
+ */
 export async function sendOverdueReminderEmailHandler(
   req: HttpRequest,
   context: InvocationContext,

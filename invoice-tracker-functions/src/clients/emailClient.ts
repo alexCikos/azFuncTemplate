@@ -1,6 +1,10 @@
-// emailClient.ts - Client for sending emails via Microsoft Graph API
+/**
+ * Utilities for sending email through the Microsoft Graph API.
+ */
 
-// Object containing the necessary parameters to send an email, including the Graph access token, sender mailbox, recipient email, subject, and body text.
+/**
+ * Parameters required to send a plain-text email through Microsoft Graph.
+ */
 export type SendEmailArgs = {
   graphAccessToken: string;
   senderMailbox: string;
@@ -9,7 +13,12 @@ export type SendEmailArgs = {
   bodyText: string;
 };
 
-// This function sends an email using the Microsoft Graph API. It constructs the appropriate API endpoint and payload based on the provided arguments, makes the HTTP request, and handles potential errors by checking the response status and throwing an error with details if the request was not successful.
+/**
+ * Sends a plain-text email by calling the Microsoft Graph `sendMail` endpoint.
+ *
+ * @param args The email delivery settings, including the access token, sender mailbox, recipient, subject, and body text.
+ * @returns A promise that resolves when Microsoft Graph accepts the email for delivery.
+ */
 export async function sendEmail(args: SendEmailArgs): Promise<void> {
   const endpoint = `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(
     args.senderMailbox,

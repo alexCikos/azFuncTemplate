@@ -56,4 +56,4 @@ flowchart TD
 1. Confirm internal names in `sharepointColumns.json`.
 2. Update field mappings in `mapInvoiceFields.ts`.
 3. If filter logic changes, update `OVERDUE_INVOICE_FILTER` in `getSharePointListItems.ts`.
-4. Run `npm run typecheck` from `my-func-api`.
+4. Run `npm run typecheck` from `invoice-tracker-functions`.

@@ -1,5 +1,15 @@
+/**
+ * Utilities for acquiring a Microsoft Graph app-only access token.
+ */
+
 const DEFAULT_GRAPH_SCOPE = "https://graph.microsoft.com/.default";
 
+/**
+ * Requests an app-only access token for Microsoft Graph by using the client
+ * credentials flow.
+ *
+ * @returns A promise that resolves to a bearer token for calling Microsoft Graph.
+ */
 export async function getGraphAccessToken(): Promise<string> {
   const tenantId = process.env.GRAPH_TENANT_ID!;
   const clientId = process.env.GRAPH_CLIENT_ID!;

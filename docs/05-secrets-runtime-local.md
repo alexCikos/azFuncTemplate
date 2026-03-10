@@ -103,14 +103,14 @@ These values are deployed by Bicep from `infra/main.parameters.<env>.json`:
 
 ## 6) Local Development
 
-In `my-func-api/local.settings.json`:
+In `invoice-tracker-functions/local.settings.json`:
 - Use the same setting names.
 - Set `GRAPH_CLIENT_SECRET` to a real local secret value (not Key Vault reference syntax).
 
 Run locally:
 
 ```bash
-cd my-func-api
+cd invoice-tracker-functions
 npm ci
 npm run start
 ```

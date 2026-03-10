@@ -1,16 +1,28 @@
-// sharepointClient.ts - Client for reading items from a SharePoint list via Microsoft Graph API
+/**
+ * Utilities for reading overdue invoice data from a SharePoint list by using
+ * the Microsoft Graph API.
+ */
 
 import {
   mapInvoiceFields,
   type InvoiceReminderItem,
 } from "../mapper/mapInvoiceFields";
 
-// The type of the raw SharePoint list item is not well-defined, so we use a flexible type with optional fields
+/**
+ * Minimal shape of a SharePoint list item returned by Graph for this workflow.
+ */
 type SharePointItem = {
   fields?: Record<string, unknown>;
 };
 
-// This function reads items from a SharePoint list using the Microsoft Graph API, applying a filter to get only the overdue invoices. It then maps the raw SharePoint fields to a cleaner format with business-friendly names.
+/**
+ * Reads SharePoint list items that match the supplied filter and maps their
+ * raw fields to the invoice reminder model used by the app.
+ *
+ * @param graphAccessToken A valid Microsoft Graph access token with permission to read the SharePoint list.
+ * @param filter The OData filter expression used to limit which SharePoint list items are returned.
+ * @returns A promise that resolves to cleaned invoice reminder records mapped from the SharePoint response.
+ */
 export async function getSharePointListItems(
   graphAccessToken: string,
   filter: string,
@@ -36,7 +48,7 @@ export async function getSharePointListItems(
     headers: { Authorization: `Bearer ${graphAccessToken}` },
   });
 
-  // Handle potential errors from the Graph API call, including parsing the error details from the response body to simplify troubleshooting.
+  // Parse the Graph response before error handling so detailed error fields are available in thrown messages.
   const listPayload = (await listResponse.json()) as {
     value?: SharePointItem[];
     error?: { code?: string; message?: string };

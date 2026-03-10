@@ -43,7 +43,7 @@ When you clone this repo for a new client, you should be able to:
   - Deploys infra and function code to `prod`.
 - `.github/workflows/validate-template.yml`
   - PR validation workflow (TypeScript + Bicep syntax checks).
-- `my-func-api/src/functions/hello.ts`
+- `invoice-tracker-functions/src/functions/hello.ts`
   - Sample HTTP function showing runtime configuration usage.
 - `sample-data/invoice-tracker-au-sharepoint-import.xlsx`
   - SharePoint import-ready demo data with reminder-control columns.
@@ -390,7 +390,7 @@ This teaches how Bicep app settings flow into runtime behavior.
 Local test:
 
 ```bash
-cd my-func-api
+cd invoice-tracker-functions
 npm ci
 npm run start
 ```
@@ -868,10 +868,10 @@ az deployment group create \
   -p @infra/main.parameters.dev.json
 ```
 
-Build API locally:
+Build function app locally:
 
 ```bash
-cd my-func-api
+cd invoice-tracker-functions
 npm ci
 npm run validate
 ```

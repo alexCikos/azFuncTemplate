@@ -55,10 +55,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: my-func-api/package-lock.json
+          cache-dependency-path: invoice-tracker-functions/package-lock.json
 
       - name: Install + build function
-        working-directory: my-func-api
+        working-directory: invoice-tracker-functions
         run: |
           npm ci
           npm run build
@@ -67,7 +67,7 @@ jobs:
 
       - name: Create deployment package (zip)
         run: |
-          cd my-func-api
+          cd invoice-tracker-functions
           zip -r ../functionapp.zip host.json package.json package-lock.json dist node_modules \
             -x "**/.git/**" \
             -x "**/.github/**" \
