@@ -77,7 +77,11 @@ async function readWorkflowRequest(
     throw new BadRequestError("Request body must be valid JSON.");
   }
 
-  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) {
+  if (
+    payload === null ||
+    typeof payload !== "object" ||
+    Array.isArray(payload)
+  ) {
     throw new BadRequestError("Request body must be a JSON object.");
   }
 
@@ -111,6 +115,9 @@ export async function sendOverdueReminderEmailHandler(
       listId: readRequiredSetting("SHAREPOINT_LIST_ID"),
       senderMailbox: readRequiredSetting("SHARED_MAILBOX"),
       filter: request.filter,
+      subjectTemplate: "Overdue Invoice Reminder - {InvoiceNumber}",
+      emailBodyTemplate:
+        "Dear {ClientName},\n\nOur records indicate that invoice #{InvoiceNumber} was due on {DueDate}. Please arrange for payment at your earliest convenience.\n\nThank you,\nFinance Team",
     };
 
     // Keep the handler responsible for runtime configuration so the workflow

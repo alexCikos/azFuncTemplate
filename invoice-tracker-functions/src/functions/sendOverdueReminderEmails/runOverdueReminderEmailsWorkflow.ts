@@ -10,6 +10,28 @@ import type { SendEmailArgs } from "../../clients/emailClient";
 import type { InvoiceReminderItem } from "../../mapper/mapInvoiceFields";
 
 /**
+ * Placeholder values available when rendering reminder email templates.
+ */
+type ReminderTemplateValues = {
+  /**
+   * Client display name used in reminder content.
+   */
+  ClientName: string;
+  /**
+   * Preferred invoice reference shown in reminder content.
+   */
+  InvoiceNumber: string;
+  /**
+   * Backwards-compatible invoice identifier placeholder.
+   */
+  InvoiceId: string;
+  /**
+   * Due date shown in reminder content.
+   */
+  DueDate: string;
+};
+
+/**
  * Dependency contract for the overdue reminder workflow.
  */
 export type RunOverdueReminderEmailsWorkflowDeps = {
@@ -56,6 +78,16 @@ export type RunOverdueReminderEmailsWorkflowInput = {
    * Optional OData filter used to narrow the SharePoint list query.
    */
   filter?: string;
+  /**
+   * Email body template used for reminder emails. Supported placeholders are
+   * `{ClientName}`, `{InvoiceNumber}`, `{InvoiceId}`, and `{DueDate}`.
+   */
+  emailBodyTemplate: string;
+  /**
+   * Email subject template used for reminder emails. Supported placeholders are
+   * `{ClientName}`, `{InvoiceNumber}`, `{InvoiceId}`, and `{DueDate}`.
+   */
+  subjectTemplate: string;
 };
 
 /**
@@ -104,6 +136,45 @@ export type RunOverdueReminderEmailsWorkflowResult = {
    */
   filter?: string;
 };
+
+/**
+ * Builds the placeholder values used to render email subject and body
+ * templates for a specific invoice.
+ *
+ * @param item The invoice item currently being processed by the workflow.
+ * @returns The token values available to the reminder template renderer.
+ */
+function buildReminderTemplateValues(
+  item: InvoiceReminderItem,
+): ReminderTemplateValues {
+  const invoiceReference =
+    item.InvoiceNumber ?? item.Id ?? "unknown invoice";
+
+  return {
+    ClientName: item.ClientName ?? "customer",
+    InvoiceNumber: invoiceReference,
+    InvoiceId: item.Id ?? invoiceReference,
+    DueDate: item.DueDate ?? "the recorded due date",
+  };
+}
+
+/**
+ * Replaces supported reminder template placeholders with values from the
+ * current invoice item.
+ *
+ * @param template The subject or body template to render.
+ * @param values The placeholder values for the current invoice item.
+ * @returns The rendered string with known placeholders replaced.
+ */
+function renderReminderTemplate(
+  template: string,
+  values: ReminderTemplateValues,
+): string {
+  return template.replace(
+    /{(ClientName|InvoiceNumber|InvoiceId|DueDate)}/g,
+    (_, key: keyof ReminderTemplateValues) => values[key],
+  );
+}
 
 /**
  * Runs the overdue reminder workflow and returns a summary of the emails that
@@ -167,13 +238,18 @@ export async function runOverdueReminderEmailsWorkflow(
       continue;
     }
 
+    const templateValues = buildReminderTemplateValues(item);
+
     // Constructing the email parameters for the current invoice item to send a reminder email through Microsoft Graph.
     const emailArgs: SendEmailArgs = {
       graphAccessToken,
       senderMailbox: input.senderMailbox,
       recipientEmail: item.ClientEmail,
-      subject: `Overdue Invoice Reminder for ${item.ClientName ?? "your invoice"}`,
-      bodyText: `Dear ${item.ClientName ?? "customer"},\n\nOur records indicate that invoice #${item.InvoiceNumber ?? item.Id ?? "unknown"} was due on ${item.DueDate ?? "the recorded due date"}. Please arrange for payment at your earliest convenience.\n\nThank you,\nFinance Team`,
+      subject: renderReminderTemplate(input.subjectTemplate, templateValues),
+      bodyText: renderReminderTemplate(
+        input.emailBodyTemplate,
+        templateValues,
+      ),
     };
 
     // Attempting to send the reminder email for the current item and updating the workflow outcome counts based on success or failure of the send operation.
