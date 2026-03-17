@@ -1,3 +1,4 @@
+import axios from "axios";
 import {
   mapInvoiceFields,
   type InvoiceReminderItem,
@@ -21,7 +22,6 @@ export async function getSharePointListItems(
   siteId: string,
   listId: string,
 ): Promise<InvoiceReminderItem[]> {
-  // Construct the Microsoft Graph API endpoint for reading items from a SharePoint list.
   const listEndpoint = new URL(
     `https://graph.microsoft.com/v1.0/sites/${encodeURIComponent(
       siteId,
@@ -34,13 +34,34 @@ export async function getSharePointListItems(
     listEndpoint.searchParams.set("$filter", filter);
   }
 
-  let listResponse: Response;
   try {
-    listResponse = await fetch(listEndpoint, {
-      method: "GET",
+    const listResponse = await axios.get<{
+      value?: SharePointItem[];
+    }>(listEndpoint.toString(), {
       headers: { Authorization: `Bearer ${graphAccessToken}` },
     });
-  } catch (error) {
+    const renamedFields = (listResponse.data.value ?? []).map((item) =>
+      mapInvoiceFields(item.fields ?? {}),
+    );
+
+    return renamedFields;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response?.status;
+      const responseData = error.response?.data as
+        | { error?: { code?: string; message?: string } }
+        | undefined;
+
+      if (typeof statusCode === "number") {
+        const graphCode = responseData?.error?.code ?? "unknown_graph_error";
+        const graphMessage =
+          responseData?.error?.message ?? "Unable to read SharePoint list items.";
+        throw new Error(
+          `Graph list read failed (${statusCode}) ${graphCode} ${graphMessage}`.trim(),
+        );
+      }
+    }
+
     // List reads gate the whole batch, so the workflow is simpler if this
     // helper throws and lets the outer handler stop the run.
     const errorCode = extractErrorCode(error);
@@ -52,35 +73,4 @@ export async function getSharePointListItems(
       `Graph list read failed${errorCode ? ` (${errorCode})` : ""} ${message}`.trim(),
     );
   }
-
-  let listPayload:
-    | {
-        value?: SharePointItem[];
-        error?: { code?: string; message?: string };
-      }
-    | undefined;
-
-  try {
-    listPayload = (await listResponse.json()) as {
-      value?: SharePointItem[];
-      error?: { code?: string; message?: string };
-    };
-  } catch {
-    listPayload = undefined;
-  }
-
-  if (!listResponse.ok) {
-    const graphCode = listPayload?.error?.code ?? "unknown_graph_error";
-    const graphMessage =
-      listPayload?.error?.message ?? "Unable to read SharePoint list items.";
-    throw new Error(
-      `Graph list read failed (${listResponse.status}) ${graphCode} ${graphMessage}`.trim(),
-    );
-  }
-
-  const renamedFields = (listPayload?.value ?? []).map((item) =>
-    mapInvoiceFields(item.fields ?? {}),
-  );
-
-  return renamedFields;
 }

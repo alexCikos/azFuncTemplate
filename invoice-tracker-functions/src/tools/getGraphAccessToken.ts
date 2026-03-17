@@ -1,3 +1,4 @@
+import axios from "axios";
 import { extractErrorCode } from "./errorHandlers";
 
 const DEFAULT_GRAPH_SCOPE = "https://graph.microsoft.com/.default";
@@ -35,14 +36,34 @@ export async function getGraphAccessToken(
     grant_type: "client_credentials",
   });
 
-  let tokenResponse: Response;
   try {
-    tokenResponse = await fetch(tokenEndpoint, {
-      method: "POST",
+    const tokenResponse = await axios.post<{
+      access_token?: string;
+    }>(tokenEndpoint, tokenForm.toString(), {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: tokenForm.toString(),
     });
-  } catch (error) {
+    if (!tokenResponse.data.access_token) {
+      throw new Error("No access token returned.");
+    }
+
+    return tokenResponse.data.access_token;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response?.status;
+      const responseData = error.response?.data as
+        | { error?: string; error_description?: string }
+        | undefined;
+
+      if (typeof statusCode === "number") {
+        const errorCode = responseData?.error ?? "unknown_token_error";
+        const errorDescription =
+          responseData?.error_description ?? error.message;
+        throw new Error(
+          `Graph token request failed (${statusCode}) ${errorCode} ${errorDescription}`.trim(),
+        );
+      }
+    }
+
     // Token acquisition is a whole-workflow dependency, so callers expect a
     // thrown error here instead of a recoverable result object.
     const errorCode = extractErrorCode(error);
@@ -54,33 +75,4 @@ export async function getGraphAccessToken(
       `Graph token request failed${errorCode ? ` (${errorCode})` : ""} ${message}`.trim(),
     );
   }
-
-  let tokenPayload:
-    | {
-        access_token?: string;
-        error?: string;
-        error_description?: string;
-      }
-    | undefined;
-
-  try {
-    tokenPayload = (await tokenResponse.json()) as {
-      access_token?: string;
-      error?: string;
-      error_description?: string;
-    };
-  } catch {
-    tokenPayload = undefined;
-  }
-
-  if (!tokenResponse.ok || !tokenPayload?.access_token) {
-    const errorCode = tokenPayload?.error ?? "unknown_token_error";
-    const errorDescription =
-      tokenPayload?.error_description ?? "No access token returned.";
-    throw new Error(
-      `Graph token request failed (${tokenResponse.status}) ${errorCode} ${errorDescription}`.trim(),
-    );
-  }
-
-  return tokenPayload.access_token;
 }

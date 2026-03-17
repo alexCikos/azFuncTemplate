@@ -17,12 +17,12 @@ Deployment path:
 4. Function code is built and deployed as zip.
 
 Runtime path:
-1. Function handler reads app settings and request input.
-2. Handler builds explicit workflow dependencies, input, and message templates.
+1. Function registration loads JSON-backed reminder config and creates one HTTP handler per config entry.
+2. Each generated handler reads app settings and builds explicit workflow dependencies and input.
 3. Workflow requests a Graph app-only token through the injected helper.
 4. Workflow reads SharePoint items and renders the subject/body templates with invoice data.
 5. Token acquisition and SharePoint reads fail the run immediately when prerequisites are missing or Graph rejects the request.
-6. Email sends stay item-scoped, with a small retry window for transient DNS lookup failures only.
+6. Email sends stay item-scoped, and the email client retries transient DNS failures before returning a final send result.
 7. Clients use explicit parameters instead of reading `process.env`.
 
 ## Identity Separation (Critical)

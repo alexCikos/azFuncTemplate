@@ -1,0 +1,7 @@
+{
+  "send-overdue-reminder-email": {
+    "subjectTemplate": "Overdue Invoice Reminder - {InvoiceNumber}",
+    "emailBodyTemplate": "Dear {ClientName},\n\nOur records indicate that invoice #{InvoiceNumber} was due on {DueDate}. Please arrange for payment at your earliest convenience.\n\nThank you,\nFinance Team",
+    "filter": "fields/field_13 eq 'Overdue'"
+  }
+}

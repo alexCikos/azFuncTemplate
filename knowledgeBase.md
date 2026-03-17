@@ -44,7 +44,11 @@ When you clone this repo for a new client, you should be able to:
 - `.github/workflows/validate-template.yml`
   - PR validation workflow (TypeScript + Bicep syntax checks).
 - `invoice-tracker-functions/src/functions/sendOverdueReminderEmails.ts`
-  - HTTP trigger that reads runtime settings, parses request input, and wires the overdue reminder workflow.
+  - Azure Function registration file that loads JSON-backed reminder config and registers one HTTP handler per entry.
+- `invoice-tracker-functions/src/functions/sendOverdueReminderEmails/createReminderHandler.ts`
+  - Reusable HTTP handler factory that reads runtime settings, injects dependencies, and calls the reminder workflow.
+- `invoice-tracker-functions/src/functions/sendOverdueReminderEmails/reminderHandlerConfigs.json`
+  - Per-function subject, body, and filter definitions used by the registration layer.
 - `invoice-tracker-functions/src/functions/sendOverdueReminderEmails/runOverdueReminderEmailsWorkflow.ts`
   - Workflow implementation showing injected dependencies, typed input, and execution summary handling.
 - `sample-data/invoice-tracker-au-sharepoint-import.xlsx`
@@ -376,11 +380,9 @@ Checks:
 
 `sendOverdueReminderEmails.ts` demonstrates the thin-handler pattern:
 
-- reads runtime settings from `process.env`
-- parses the optional request filter from query string or JSON body
-- builds explicit workflow input and injected dependencies
-- defines the subject/body templates for the overdue reminder function
-- delegates to the feature workflow without embedding business logic in the handler
+- loads JSON-backed reminder config and registers one HTTP handler per config entry
+- keeps runtime configuration and dependency wiring in a reusable handler factory
+- delegates to the feature workflow without embedding business logic in the registration file
 
 The current runtime settings used by the workflow are:
 
@@ -402,10 +404,10 @@ The current runtime settings used by the workflow are:
 
 - the handler owns `process.env`
 - the workflow receives typed input plus injected dependencies
-- the handler provides message templates and the workflow renders them with invoice data
+- the function registration loads JSON-backed message templates and the workflow renders them with invoice data
 - token acquisition and SharePoint list reads throw on failure because the run cannot continue without them
-- email sends return a structured result so failures can stay item-scoped
-- the workflow retries only transient DNS lookup failures before counting an email send as failed
+- email sends return a `SendEmailResult` so failures can stay item-scoped, and the email client retries transient DNS failures before returning a final result
+- the workflow calls the email client directly and counts each send based on the returned result
 - the workflow reads SharePoint items, skips rows without recipient email, and reports matched/sent/skipped/failed counts
 - the clients and token helper receive explicit parameters instead of reading runtime settings directly
 
@@ -423,15 +425,9 @@ Examples:
 curl -X POST "http://localhost:7071/api/send-overdue-reminder-email"
 ```
 
-```bash
-curl -X POST "http://localhost:7071/api/send-overdue-reminder-email?filter=fields/field_13 eq 'Overdue'"
-```
+Reminder subject, body, and filter are configured in:
 
-```bash
-curl -X POST "http://localhost:7071/api/send-overdue-reminder-email" \
-  -H "Content-Type: application/json" \
-  -d '{"filter":"fields/field_13 eq '\''Overdue'\''"}'
-```
+- `invoice-tracker-functions/src/functions/sendOverdueReminderEmails/reminderHandlerConfigs.json`
 
 Notes:
 - Filters sent to Microsoft Graph must use SharePoint internal field names such as `field_13`.

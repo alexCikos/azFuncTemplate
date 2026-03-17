@@ -1,9 +1,8 @@
 import type {
-  Result as SendEmailResult,
   SendEmailArgs,
+  SendEmailResult,
 } from "../../clients/emailClient";
 import type { InvoiceReminderItem } from "../../mapper/mapInvoiceFields";
-import { retryOnDns } from "../../tools/errorHandlers";
 
 /**
  * Placeholder values available in subject and body templates.
@@ -107,7 +106,7 @@ export async function runOverdueReminderEmailsWorkflow(
     tokenLength: graphAccessToken.length,
   });
 
-  const getSPItemsResult: InvoiceReminderItem[] =
+  const items: InvoiceReminderItem[] =
     await deps.getSharePointListItems(
       graphAccessToken,
       input.filter || "",
@@ -115,14 +114,16 @@ export async function runOverdueReminderEmailsWorkflow(
       input.listId,
     );
   deps.log("Retrieved items from SharePoint", {
-    itemCount: getSPItemsResult.length,
+    itemCount: items.length,
   });
 
   let sentCount = 0;
   let skippedCount = 0;
   let failedCount = 0;
 
-  for (const [index, item] of getSPItemsResult.entries()) {
+  for (const [index, item] of items.entries()) {
+    const itemId = item.Id ?? String(index + 1);
+
     deps.log(`Item ${index + 1}`, {
       id: item.Id,
       clientName: item.ClientName,
@@ -132,7 +133,7 @@ export async function runOverdueReminderEmailsWorkflow(
 
     if (!item.ClientEmail) {
       skippedCount += 1;
-      deps.log(`Skipping reminder email for item ${item.Id ?? index + 1}`, {
+      deps.log(`Skipping reminder email for item ${itemId}`, {
         reason: "Missing ClientEmail",
       });
       continue;
@@ -149,54 +150,29 @@ export async function runOverdueReminderEmailsWorkflow(
     };
 
     try {
-      // A transient DNS failure should not fail the whole batch, so email sends
-      // get a small retry window while other send failures stay item-scoped.
-      const retryResult = await retryOnDns(deps.sendEmail, emailArgs, {
-        onRetry: ({ attempt, nextAttempt, result, waitMs }) => {
-          deps.log(
-            `Retrying reminder email for item ${item.Id ?? index + 1} after DNS error`,
-            {
-              attempt,
-              nextAttempt,
-              waitMs,
-              error: result.errorMessage,
-              errorCode: result.errorCode,
-            },
-          );
-        },
-      });
+      const sendResult = await deps.sendEmail(emailArgs);
 
-      if (retryResult.result.isError) {
+      if (sendResult.isError) {
         failedCount += 1;
-        deps.log(
-          `Failed to send reminder email for item ${item.Id ?? index + 1}`,
-          {
-            attempt: retryResult.attempts,
-            error: retryResult.result.errorMessage,
-            errorCode: retryResult.result.errorCode,
-            statusCode: retryResult.result.statusCode,
-          },
-        );
+        deps.log(`Failed to send reminder email for item ${itemId}`, {
+          error: sendResult.errorMessage,
+          errorCode: sendResult.errorCode,
+          statusCode: sendResult.statusCode,
+        });
         continue;
       }
 
       sentCount += 1;
-      deps.log(
-        `Successfully sent reminder email for item ${item.Id ?? index + 1}`,
-        { attempt: retryResult.attempts },
-      );
+      deps.log(`Successfully sent reminder email for item ${itemId}`);
     } catch (error) {
       failedCount += 1;
-      deps.log(
-        `Failed to send reminder email for item ${item.Id ?? index + 1}`,
-        {
-          error: error instanceof Error ? error.message : String(error),
-        },
-      );
+      deps.log(`Failed to send reminder email for item ${itemId}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
-  const matchedCount = getSPItemsResult.length;
+  const matchedCount = items.length;
   const status = failedCount > 0 ? "completed_with_failures" : "completed";
 
   return {

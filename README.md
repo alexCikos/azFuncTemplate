@@ -25,7 +25,6 @@ Implemented now:
 - Graph token acquisition helper that accepts explicit config
 - SharePoint client for reading list items with explicit IDs and filter input
 - Email client for Graph `sendMail`
-- DNS-only retry helper for item-scoped email send failures
 - Mapping layer for converting SharePoint internal fields into invoice-friendly names
 - Azure Function handler and workflow for the overdue reminder flow
 
@@ -47,13 +46,13 @@ The repo is structured around a thin-handler pattern.
 
 In the current implementation:
 
-- the Azure Function handler reads `process.env`, validates request input, and wires dependencies
-- the handler also defines the reminder subject/body templates for that specific function entrypoint
+- the function registration layer loads JSON-backed reminder config and registers one Azure Function per config entry
+- each generated handler reads `process.env` and wires explicit workflow dependencies
 - the workflow receives typed input plus injected dependencies
 - the workflow renders the templates with invoice-specific values such as `{ClientName}`, `{InvoiceNumber}`, and `{DueDate}`
 - token acquisition and SharePoint reads fail fast because they are prerequisites for the whole run
-- email sends return structured results so a single failed reminder does not abort the batch
-- email sends retry only transient DNS lookup failures before being counted as failed
+- email sends return structured results so a single failed reminder does not abort the batch, and the email client retries transient DNS failures with a short delay
+- the workflow calls the email client directly and treats each send result as item-scoped
 - the workflow reads SharePoint items, skips rows without `ClientEmail`, and reports matched/sent/skipped/failed counts
 - the clients and token helper operate on explicit parameters instead of reading runtime settings directly
 
@@ -94,6 +93,8 @@ flowchart LR
 
 - [infra/main.bicep](./infra/main.bicep)
 - [invoice-tracker-functions/src/functions/sendOverdueReminderEmails.ts](./invoice-tracker-functions/src/functions/sendOverdueReminderEmails.ts)
+- [invoice-tracker-functions/src/functions/sendOverdueReminderEmails/createReminderHandler.ts](./invoice-tracker-functions/src/functions/sendOverdueReminderEmails/createReminderHandler.ts)
+- [invoice-tracker-functions/src/functions/sendOverdueReminderEmails/reminderHandlerConfigs.json](./invoice-tracker-functions/src/functions/sendOverdueReminderEmails/reminderHandlerConfigs.json)
 - [invoice-tracker-functions/src/functions/sendOverdueReminderEmails/runOverdueReminderEmailsWorkflow.ts](./invoice-tracker-functions/src/functions/sendOverdueReminderEmails/runOverdueReminderEmailsWorkflow.ts)
 - [invoice-tracker-functions/src/clients/sharepointClient.ts](./invoice-tracker-functions/src/clients/sharepointClient.ts)
 - [invoice-tracker-functions/src/clients/emailClient.ts](./invoice-tracker-functions/src/clients/emailClient.ts)
@@ -141,19 +142,9 @@ The current HTTP function can be invoked locally with:
 curl -X POST http://localhost:7071/api/send-overdue-reminder-email
 ```
 
-Optional filter via query string:
+The reminder subject, body, and configured filter now come from:
 
-```bash
-curl -X POST "http://localhost:7071/api/send-overdue-reminder-email?filter=fields/field_13 eq 'Overdue'"
-```
-
-Optional filter via JSON body:
-
-```bash
-curl -X POST "http://localhost:7071/api/send-overdue-reminder-email" \
-  -H "Content-Type: application/json" \
-  -d '{"filter":"fields/field_13 eq '\''Overdue'\''"}'
-```
+- [reminderHandlerConfigs.json](./invoice-tracker-functions/src/functions/sendOverdueReminderEmails/reminderHandlerConfigs.json)
 
 The endpoint returns a workflow summary with `status`, `matchedCount`, `sentCount`, `skippedCount`, and `failedCount`.
 
@@ -199,7 +190,7 @@ This project is intended to support multiple automation flows, not just one endp
 
 The current email templating pattern supports that goal:
 
-- each function handler can define its own subject/body templates
+- each reminder endpoint can be configured from JSON with its own subject/body templates and filter
 - the shared workflow renders those templates with invoice data at runtime
 - the email client only sends the final rendered strings
 

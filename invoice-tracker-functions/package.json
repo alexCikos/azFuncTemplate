@@ -15,12 +15,13 @@
     "test": "echo \"No automated tests yet\""
   },
   "dependencies": {
-    "@azure/functions": "^4.0.0"
+    "@azure/functions": "^4.0.0",
+    "axios": "^1.13.6"
   },
   "devDependencies": {
     "@types/node": "18.x",
-    "typescript": "^5.0.0",
-    "rimraf": "^5.0.0"
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0"
   },
   "engines": {
     "node": ">=22 <23"
