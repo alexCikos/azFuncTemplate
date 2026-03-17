@@ -25,6 +25,7 @@ Implemented now:
 - Graph token acquisition helper that accepts explicit config
 - SharePoint client for reading list items with explicit IDs and filter input
 - Email client for Graph `sendMail`
+- DNS-only retry helper for item-scoped email send failures
 - Mapping layer for converting SharePoint internal fields into invoice-friendly names
 - Azure Function handler and workflow for the overdue reminder flow
 
@@ -47,7 +48,12 @@ The repo is structured around a thin-handler pattern.
 In the current implementation:
 
 - the Azure Function handler reads `process.env`, validates request input, and wires dependencies
+- the handler also defines the reminder subject/body templates for that specific function entrypoint
 - the workflow receives typed input plus injected dependencies
+- the workflow renders the templates with invoice-specific values such as `{ClientName}`, `{InvoiceNumber}`, and `{DueDate}`
+- token acquisition and SharePoint reads fail fast because they are prerequisites for the whole run
+- email sends return structured results so a single failed reminder does not abort the batch
+- email sends retry only transient DNS lookup failures before being counted as failed
 - the workflow reads SharePoint items, skips rows without `ClientEmail`, and reports matched/sent/skipped/failed counts
 - the clients and token helper operate on explicit parameters instead of reading runtime settings directly
 
@@ -92,6 +98,7 @@ flowchart LR
 - [invoice-tracker-functions/src/clients/sharepointClient.ts](./invoice-tracker-functions/src/clients/sharepointClient.ts)
 - [invoice-tracker-functions/src/clients/emailClient.ts](./invoice-tracker-functions/src/clients/emailClient.ts)
 - [invoice-tracker-functions/src/tools/getGraphAccessToken.ts](./invoice-tracker-functions/src/tools/getGraphAccessToken.ts)
+- [invoice-tracker-functions/src/tools/errorHandlers.ts](./invoice-tracker-functions/src/tools/errorHandlers.ts)
 - [invoice-tracker-functions/src/mapper/mapInvoiceFields.ts](./invoice-tracker-functions/src/mapper/mapInvoiceFields.ts)
 - [scripts/bootstrap-client.sh](./scripts/bootstrap-client.sh)
 
@@ -189,6 +196,12 @@ For the full setup and handover path, read these in order:
 ## Why It Is Structured This Way
 
 This project is intended to support multiple automation flows, not just one endpoint. That is why the repo is split into reusable infrastructure and integration modules on one side, and feature-specific workflow folders on the other. The design choice is deliberate: it should be easy to add another reminder flow with different SharePoint filters, different email rules, and different orchestration logic without rewriting the foundation each time.
+
+The current email templating pattern supports that goal:
+
+- each function handler can define its own subject/body templates
+- the shared workflow renders those templates with invoice data at runtime
+- the email client only sends the final rendered strings
 
 ## Next Steps
 

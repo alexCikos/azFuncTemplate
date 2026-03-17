@@ -1,77 +1,89 @@
-/**
- * Utilities for sending email through the Microsoft Graph API.
- */
+import { extractErrorCode } from "../tools/errorHandlers";
 
 /**
- * Parameters required to send a plain-text email through Microsoft Graph.
+ * Data required to send a reminder email through Microsoft Graph.
  */
 export type SendEmailArgs = {
-  /**
-   * App-only bearer token used to authorize the Graph `sendMail` request.
-   */
   graphAccessToken: string;
-  /**
-   * Mailbox that will appear as the sender of the reminder email.
-   */
   senderMailbox: string;
-  /**
-   * Recipient email address for the reminder message.
-   */
   recipientEmail: string;
-  /**
-   * Subject line shown to the recipient.
-   */
   subject: string;
-  /**
-   * Plain-text body content sent in the reminder email.
-   */
   bodyText: string;
 };
 
 /**
- * Sends a plain-text email by calling the Microsoft Graph `sendMail` endpoint.
- *
- * @param args The email delivery settings, including the access token, sender mailbox, recipient, subject, and body text.
- * @returns A promise that resolves when Microsoft Graph accepts the email for delivery.
+ * Structured send outcome returned to the workflow so item-level failures can
+ * be logged without aborting the whole batch.
  */
-export async function sendEmail(args: SendEmailArgs): Promise<void> {
+export type Result = {
+  isError: boolean;
+  statusCode?: number;
+  errorMessage?: string;
+  errorCode?: string;
+};
+
+/**
+ * Sends a reminder email through Microsoft Graph.
+ *
+ * Returns a structured result instead of throwing for expected send failures so
+ * the workflow can continue processing other invoices.
+ */
+export async function sendEmail(args: SendEmailArgs): Promise<Result> {
   const endpoint = `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(
     args.senderMailbox,
   )}/sendMail`;
 
-  const payload = {
-    message: {
-      subject: args.subject,
-      body: {
-        contentType: "Text",
-        content: args.bodyText,
-      },
-      toRecipients: [
-        {
-          emailAddress: {
-            address: args.recipientEmail,
-          },
+  let statusCode;
+
+  try {
+    const payload = {
+      message: {
+        subject: args.subject,
+        body: {
+          contentType: "Text",
+          content: args.bodyText,
         },
-      ],
-    },
-    saveToSentItems: true,
-  };
+        toRecipients: [
+          {
+            emailAddress: {
+              address: args.recipientEmail,
+            },
+          },
+        ],
+      },
+      saveToSentItems: true,
+    };
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${args.graphAccessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${args.graphAccessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-  // Graph `sendMail` accepts the request asynchronously and returns 202 when
-  // the message has been queued successfully.
-  if (response.status !== 202) {
-    const errorBody = await response.text();
-    throw new Error(
-      `Graph sendMail failed (${response.status}) ${errorBody}`.trim(),
-    );
+    statusCode = response.status;
+
+    // Graph queues the message asynchronously and reports acceptance with 202.
+    if (response.status !== 202) {
+      const errorBody = await response.text();
+      return {
+        isError: true,
+        statusCode,
+        errorMessage: `Graph sendMail failed (${response.status}) ${errorBody}`,
+      };
+    }
+
+    return { isError: false, statusCode: statusCode };
+  } catch (error) {
+    // Email send failures are tracked per item, so this client returns a
+    // structured result instead of throwing and aborting the whole batch.
+    return {
+      isError: true,
+      errorMessage:
+        error instanceof Error ? error.message : "Unknown email send error.",
+      errorCode: extractErrorCode(error),
+    };
   }
 }

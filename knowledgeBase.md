@@ -379,6 +379,7 @@ Checks:
 - reads runtime settings from `process.env`
 - parses the optional request filter from query string or JSON body
 - builds explicit workflow input and injected dependencies
+- defines the subject/body templates for the overdue reminder function
 - delegates to the feature workflow without embedding business logic in the handler
 
 The current runtime settings used by the workflow are:
@@ -401,6 +402,10 @@ The current runtime settings used by the workflow are:
 
 - the handler owns `process.env`
 - the workflow receives typed input plus injected dependencies
+- the handler provides message templates and the workflow renders them with invoice data
+- token acquisition and SharePoint list reads throw on failure because the run cannot continue without them
+- email sends return a structured result so failures can stay item-scoped
+- the workflow retries only transient DNS lookup failures before counting an email send as failed
 - the workflow reads SharePoint items, skips rows without recipient email, and reports matched/sent/skipped/failed counts
 - the clients and token helper receive explicit parameters instead of reading runtime settings directly
 

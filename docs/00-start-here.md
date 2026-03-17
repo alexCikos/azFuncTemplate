@@ -18,10 +18,12 @@ Deployment path:
 
 Runtime path:
 1. Function handler reads app settings and request input.
-2. Handler builds explicit workflow dependencies and input.
+2. Handler builds explicit workflow dependencies, input, and message templates.
 3. Workflow requests a Graph app-only token through the injected helper.
-4. Workflow calls SharePoint and email clients through injected dependencies.
-5. Clients use explicit parameters instead of reading `process.env`.
+4. Workflow reads SharePoint items and renders the subject/body templates with invoice data.
+5. Token acquisition and SharePoint reads fail the run immediately when prerequisites are missing or Graph rejects the request.
+6. Email sends stay item-scoped, with a small retry window for transient DNS lookup failures only.
+7. Clients use explicit parameters instead of reading `process.env`.
 
 ## Identity Separation (Critical)
 
