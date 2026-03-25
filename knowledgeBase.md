@@ -28,8 +28,12 @@ This repository is intentionally minimal. It exists to prove that:
   - Bicep infrastructure template plus dev/prod parameter files
 - `.github/workflows/`
   - Validation plus dev/prod deployments
+- `skills/azure-function-template-setup/`
+  - Source-controlled Codex setup skill for this template
 - `scripts/bootstrap-environment.sh`
   - Resource-group bootstrap helper
+- `scripts/install-codex-skill.sh`
+  - Installs the repo skill into the user's Codex skills folder
 - `.azure/plan.md`
   - Change plan for this template conversion
 

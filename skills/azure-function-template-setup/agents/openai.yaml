@@ -1,0 +1,4 @@
+interface:
+  display_name: "Azure Template Setup"
+  short_description: "Guide setup and deployment of this template"
+  default_prompt: "Use $azure-function-template-setup to guide me through configuring and deploying this Azure Functions template."

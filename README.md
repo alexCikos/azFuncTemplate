@@ -30,7 +30,9 @@ http://localhost:7071/
 - `function-app/` Azure Functions application code
 - `infra/` Bicep template and environment parameter files
 - `.github/workflows/` validation and deployment workflows
+- `skills/azure-function-template-setup/` source-controlled Codex setup skill for this template
 - `scripts/bootstrap-environment.sh` one-command infrastructure bootstrap
+- `scripts/install-codex-skill.sh` install the repo skill into your local Codex skills folder
 - `docs/` setup, deployment, local-development, and customization guides
 
 ## Quick Start
@@ -55,6 +57,22 @@ http://localhost:7071/
    ```bash
    curl http://localhost:7071/
    ```
+
+## Codex Skill
+
+This repo includes a source-controlled setup skill under `skills/azure-function-template-setup/`.
+
+Install or refresh it locally with:
+
+```bash
+./scripts/install-codex-skill.sh
+```
+
+Then invoke it with:
+
+```text
+Use $azure-function-template-setup to guide me through configuring and deploying this Azure Functions template.
+```
 
 ## Deploy to Azure
 
