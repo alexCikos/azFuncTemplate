@@ -15,6 +15,7 @@ Before promoting:
 - `npm test` passes
 - `az bicep build --file infra/main.bicep` succeeds
 - The `dev` deployment is reachable in a browser
+- branch protection on `main` requires the `Validate Template` check
 
 ## After Deployment
 

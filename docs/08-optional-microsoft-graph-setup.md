@@ -256,6 +256,51 @@ The starter now includes:
 Use `readGraphAccessTokenConfigFromEnv()` when a function should support Graph only when the environment is configured.
 That helper returns `undefined` when Graph is not configured at all, and throws when the Graph config is only partially populated.
 
+## Minimal Usage Example
+
+Example pattern for a derived function:
+
+```ts
+import { app } from "@azure/functions";
+import {
+  getGraphAccessToken,
+  readGraphAccessTokenConfigFromEnv,
+} from "../utils/graph/getGraphAccessToken";
+
+app.http("graphTokenCheck", {
+  methods: ["GET"],
+  authLevel: "anonymous",
+  route: "graph-token-check",
+  handler: async (_request, context) => {
+    const graphConfig = readGraphAccessTokenConfigFromEnv();
+
+    if (!graphConfig) {
+      return {
+        status: 503,
+        jsonBody: {
+          graphConfigured: false,
+          error: "Microsoft Graph is not configured for this environment.",
+        },
+      };
+    }
+
+    const token = await getGraphAccessToken(graphConfig);
+
+    context.log("Successfully acquired a Microsoft Graph access token.");
+
+    return {
+      status: 200,
+      jsonBody: {
+        graphConfigured: true,
+        tokenPreview: `${token.slice(0, 12)}...`,
+      },
+    };
+  },
+});
+```
+
+Keep examples like this out of the default starter registration unless the derived project actually needs Graph.
+
 ## Recommended Documentation Pattern for Derived Projects
 
 If a project adds Graph support, update:

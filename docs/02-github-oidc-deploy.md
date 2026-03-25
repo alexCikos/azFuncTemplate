@@ -53,6 +53,26 @@ Included workflows:
 - `.github/workflows/deploy-dev.yml`
 - `.github/workflows/deploy-prod.yml`
 
+## Branch Protection
+
+Recommended GitHub branch protection:
+
+For `dev`:
+
+- require pull requests before merging
+- require the `Validate Template` status check to pass
+- optionally require at least one review if multiple people will use the repo
+
+For `main`:
+
+- require pull requests before merging
+- require the `Validate Template` status check to pass
+- require `dev` validation or a reviewed promotion flow before merging
+- restrict direct pushes if this will be used in a team setting
+
+This cannot be enforced from the template code alone.
+Each derived repository should enable branch protection in GitHub settings after the repo is created.
+
 ## Next Step
 
 Continue with:

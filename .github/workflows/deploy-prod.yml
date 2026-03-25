@@ -84,6 +84,19 @@ jobs:
 
           echo "FUNCTION_APP_NAME=$FUNCTION_APP_NAME" >> "$GITHUB_ENV"
 
+          FUNCTION_HOST_NAME=$(az functionapp show \
+            -g "${{ vars.AZURE_RG }}" \
+            -n "$FUNCTION_APP_NAME" \
+            --query defaultHostName \
+            -o tsv)
+
+          if [ -z "$FUNCTION_HOST_NAME" ]; then
+            echo "Function host name is empty." >&2
+            exit 1
+          fi
+
+          echo "FUNCTION_HOST_NAME=$FUNCTION_HOST_NAME" >> "$GITHUB_ENV"
+
       - name: Create deployment package (zip)
         run: |
           cd function-app
@@ -99,3 +112,20 @@ jobs:
         with:
           app-name: ${{ env.FUNCTION_APP_NAME }}
           package: functionapp.zip
+
+      - name: Smoke test deployed app
+        run: |
+          for attempt in 1 2 3 4 5 6 7 8; do
+            RESPONSE=$(curl -fsS --max-time 20 "https://${FUNCTION_HOST_NAME}/" || true)
+
+            if [ "$RESPONSE" = "Hello World" ]; then
+              echo "Smoke test passed."
+              exit 0
+            fi
+
+            echo "Smoke test attempt ${attempt} did not return the expected response yet."
+            sleep 15
+          done
+
+          echo "Smoke test failed. Expected 'Hello World' from https://${FUNCTION_HOST_NAME}/" >&2
+          exit 1
