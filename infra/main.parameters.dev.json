@@ -11,6 +11,18 @@
     "environmentName": {
       "value": "dev"
     },
+    "graphTenantId": {
+      "value": ""
+    },
+    "graphClientId": {
+      "value": ""
+    },
+    "graphClientSecret": {
+      "value": ""
+    },
+    "graphScope": {
+      "value": "https://graph.microsoft.com/.default"
+    },
     "tags": {
       "value": {
         "application": "hello-world",

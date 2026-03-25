@@ -37,3 +37,12 @@ The sample file already includes the minimum settings required for a local HTTP-
 
 - `AzureWebJobsStorage`
 - `FUNCTIONS_WORKER_RUNTIME`
+
+It also includes optional Graph settings for derived projects:
+
+- `GRAPH_TENANT_ID`
+- `GRAPH_CLIENT_ID`
+- `GRAPH_CLIENT_SECRET`
+- `GRAPH_SCOPE`
+
+Leave those blank unless the project is using the Graph utility code.

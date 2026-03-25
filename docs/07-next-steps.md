@@ -7,3 +7,4 @@ Once the skeleton is working, common next moves are:
 3. Add domain-specific tests beside the starter response test
 4. Expand `infra/main.bicep` with databases, queues, or other Azure services
 5. Replace the starter docs with project-specific onboarding notes
+6. Use [08 - Optional Microsoft Graph Setup](./08-optional-microsoft-graph-setup.md) if the project needs SharePoint or mailbox integration

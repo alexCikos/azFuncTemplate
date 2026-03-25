@@ -1,0 +1,239 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.41.2.15936",
+      "templateHash": "15394979136932124688"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Azure region for all resources"
+      }
+    },
+    "namePrefix": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 20,
+      "metadata": {
+        "description": "Naming prefix used in resource names, for example \"hello-template\"."
+      }
+    },
+    "environmentName": {
+      "type": "string",
+      "defaultValue": "dev",
+      "allowedValues": [
+        "dev",
+        "test",
+        "prod"
+      ],
+      "metadata": {
+        "description": "Deployment environment label used in names and tags"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Optional extra tags merged onto all resources"
+      }
+    },
+    "graphTenantId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Microsoft Entra tenant ID used for optional Graph app-only token requests."
+      }
+    },
+    "graphClientId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Application (client) ID for the optional Graph runtime app registration."
+      }
+    },
+    "graphClientSecret": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Client secret for the optional Graph runtime app registration."
+      }
+    },
+    "graphScope": {
+      "type": "string",
+      "defaultValue": "https://graph.microsoft.com/.default",
+      "metadata": {
+        "description": "Graph scope used for optional client_credentials token requests."
+      }
+    }
+  },
+  "variables": {
+    "workloadSlug": "[toLower(replace(replace(parameters('namePrefix'), '_', '-'), ' ', '-'))]",
+    "normalizedPrefix": "[toLower(replace(replace(replace(parameters('namePrefix'), '-', ''), '_', ''), ' ', ''))]",
+    "suffix": "[uniqueString(resourceGroup().id)]",
+    "storageName": "[take(format('sa{0}{1}', variables('normalizedPrefix'), variables('suffix')), 24)]",
+    "functionAppName": "[toLower(take(format('func-{0}-{1}-{2}', variables('workloadSlug'), parameters('environmentName'), variables('suffix')), 60))]",
+    "planName": "[toLower(take(format('{0}-{1}-asp', variables('workloadSlug'), parameters('environmentName')), 40))]",
+    "logAnalyticsName": "[toLower(take(format('{0}-{1}-law', variables('workloadSlug'), parameters('environmentName')), 63))]",
+    "appInsightsName": "[toLower(take(format('{0}-{1}-appi', variables('workloadSlug'), parameters('environmentName')), 260))]",
+    "commonTags": "[union(createObject('workload', 'azure-function-template', 'environment', parameters('environmentName'), 'managedBy', 'bicep'), parameters('tags'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "[variables('storageName')]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('commonTags')]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "minimumTlsVersion": "TLS1_2",
+        "supportsHttpsTrafficOnly": true,
+        "allowBlobPublicAccess": false
+      }
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2022-10-01",
+      "name": "[variables('logAnalyticsName')]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('commonTags')]",
+      "properties": {
+        "retentionInDays": 30,
+        "features": {
+          "enableLogAccessUsingOnlyResourcePermissions": true
+        },
+        "sku": {
+          "name": "PerGB2018"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appInsightsName')]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('commonTags')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName'))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2023-01-01",
+      "name": "[variables('planName')]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('commonTags')]",
+      "sku": {
+        "name": "Y1",
+        "tier": "Dynamic"
+      },
+      "properties": {
+        "reserved": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2023-01-01",
+      "name": "[variables('functionAppName')]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('commonTags')]",
+      "kind": "functionapp,linux",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('planName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "ftpsState": "Disabled",
+          "minTlsVersion": "1.2",
+          "linuxFxVersion": "Node|22",
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', variables('storageName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2023-01-01').keys[0].value, environment().suffixes.storage)]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "node"
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
+            },
+            {
+              "name": "WEBSITE_NODE_DEFAULT_VERSION",
+              "value": "~22"
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString]"
+            },
+            {
+              "name": "GRAPH_TENANT_ID",
+              "value": "[parameters('graphTenantId')]"
+            },
+            {
+              "name": "GRAPH_CLIENT_ID",
+              "value": "[parameters('graphClientId')]"
+            },
+            {
+              "name": "GRAPH_CLIENT_SECRET",
+              "value": "[parameters('graphClientSecret')]"
+            },
+            {
+              "name": "GRAPH_SCOPE",
+              "value": "[parameters('graphScope')]"
+            },
+            {
+              "name": "APP_TEMPLATE_NAME",
+              "value": "[variables('workloadSlug')]"
+            },
+            {
+              "name": "ENVIRONMENT_NAME",
+              "value": "[parameters('environmentName')]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('planName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "functionAppResourceName": {
+      "type": "string",
+      "value": "[variables('functionAppName')]"
+    },
+    "functionAppDefaultHostName": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2023-01-01').defaultHostName]"
+    },
+    "storageAccountName": {
+      "type": "string",
+      "value": "[variables('storageName')]"
+    },
+    "appInsightsConnectionString": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString]"
+    }
+  }
+}

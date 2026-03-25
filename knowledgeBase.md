@@ -5,6 +5,10 @@ Primary onboarding lives in:
 - `README.md`
 - `docs/00-start-here.md` through `docs/07-next-steps.md`
 
+Optional extension guidance:
+
+- `docs/08-optional-microsoft-graph-setup.md` for Graph, SharePoint, or app-only mail patterns
+
 Use this file as the deeper reference for how the skeleton is put together.
 
 ## Goal
@@ -67,3 +71,4 @@ After the starter deployment works:
 1. Duplicate the pattern in `function-app/src/functions/helloWorld.ts`
 2. Add new routes or triggers
 3. Add only the Azure resources your feature actually needs
+4. If you need Microsoft 365 integration, add Graph support using `docs/08-optional-microsoft-graph-setup.md`

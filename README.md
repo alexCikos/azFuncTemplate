@@ -8,6 +8,7 @@ This repository is a reusable Azure Functions skeleton. It deploys a minimal Typ
 - Bicep infrastructure for Storage, Function App, Log Analytics, and Application Insights
 - GitHub Actions deployment for `dev` and `main` using OIDC
 - A bootstrap script for first-time resource-group setup
+- Optional Microsoft Graph token utility and runtime app settings
 - A tiny test suite that validates the starter response
 
 ## Runtime Behavior
@@ -79,6 +80,7 @@ Fresh template repos are safe to push immediately. The deploy workflows stay ina
 6. [docs/05-local-development.md](./docs/05-local-development.md)
 7. [docs/06-troubleshooting.md](./docs/06-troubleshooting.md)
 8. [docs/07-next-steps.md](./docs/07-next-steps.md)
+9. [docs/08-optional-microsoft-graph-setup.md](./docs/08-optional-microsoft-graph-setup.md)
 
 ## Deep Reference
 

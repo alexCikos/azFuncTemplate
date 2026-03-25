@@ -16,6 +16,10 @@ If your feature needs configuration:
 2. Add local values in `function-app/local.settings.json`
 3. Document it in `README.md` or the relevant doc
 
+If you are adding Microsoft Graph or SharePoint integration, also follow:
+
+- [08 - Optional Microsoft Graph Setup](./08-optional-microsoft-graph-setup.md)
+
 ## Change the Deployment Region or Naming
 
 Update:

@@ -19,6 +19,19 @@ param environmentName string = 'dev'
 @description('Optional extra tags merged onto all resources')
 param tags object = {}
 
+@description('Microsoft Entra tenant ID used for optional Graph app-only token requests.')
+param graphTenantId string = ''
+
+@description('Application (client) ID for the optional Graph runtime app registration.')
+param graphClientId string = ''
+
+@secure()
+@description('Client secret for the optional Graph runtime app registration.')
+param graphClientSecret string = ''
+
+@description('Graph scope used for optional client_credentials token requests.')
+param graphScope string = 'https://graph.microsoft.com/.default'
+
 var workloadSlug = toLower(replace(replace(namePrefix, '_', '-'), ' ', '-'))
 var normalizedPrefix = toLower(replace(replace(replace(namePrefix, '-', ''), '_', ''), ' ', ''))
 var suffix = uniqueString(resourceGroup().id)
@@ -128,6 +141,22 @@ resource func 'Microsoft.Web/sites@2023-01-01' = {
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
           value: appInsights.properties.ConnectionString
+        }
+        {
+          name: 'GRAPH_TENANT_ID'
+          value: graphTenantId
+        }
+        {
+          name: 'GRAPH_CLIENT_ID'
+          value: graphClientId
+        }
+        {
+          name: 'GRAPH_CLIENT_SECRET'
+          value: graphClientSecret
+        }
+        {
+          name: 'GRAPH_SCOPE'
+          value: graphScope
         }
         {
           name: 'APP_TEMPLATE_NAME'
