@@ -2,39 +2,36 @@
 
 ## What This Template Does
 
-This template gives you a repeatable way to deliver an invoice automation platform:
-- Deploy Azure infrastructure with Bicep.
-- Deploy Function App code from GitHub with OIDC.
-- Integrate with SharePoint list data through Microsoft Graph.
-- Keep runtime secrets in Key Vault.
+This template gives you a minimal Azure Functions baseline:
+
+- Deploy infrastructure with Bicep
+- Deploy code from GitHub with OIDC
+- Return `Hello World` from the root URL
+- Give you a clean place to start building real features
 
 ## Architecture Mental Model
 
 Deployment path:
-1. Push to `dev` or `main`.
-2. GitHub Actions logs into Azure via OIDC.
-3. Bicep deploys/updates infra.
-4. Function code is built and deployed as zip.
+
+1. Push to `dev` or `main`
+2. GitHub Actions logs into Azure through OIDC
+3. Bicep deploys or updates the Function App infrastructure
+4. The function app is built, zipped, and deployed
 
 Runtime path:
-1. Function registration loads JSON-backed reminder config and creates one HTTP handler per config entry.
-2. Each generated handler reads app settings and builds explicit workflow dependencies and input.
-3. Workflow requests a Graph app-only token through the injected helper.
-4. Workflow reads SharePoint items and renders the subject/body templates with invoice data.
-5. Token acquisition and SharePoint reads fail the run immediately when prerequisites are missing or Graph rejects the request.
-6. Email sends stay item-scoped, and the email client retries transient DNS failures before returning a final send result.
-7. Clients use explicit parameters instead of reading `process.env`.
 
-## Identity Separation (Critical)
+1. Azure receives an anonymous HTTP request on `/`
+2. The function returns plain text `Hello World`
 
-Use separate identities for separate jobs:
-1. Deployment app registration (`gh-deployer-*`) for GitHub -> Azure.
-2. Graph runtime app (`app-*-graph-*`) for Function -> Graph.
-3. Admin grant app/user context for `POST /sites/{siteId}/permissions`.
+## Success Check
 
-Do not collapse these into one identity in client environments.
+The template is working when both of these succeed:
+
+- `http://localhost:7071/` returns `Hello World`
+- `https://<your-function-host>/` returns `Hello World` after deployment
 
 ## Reading Order
 
 Continue with:
+
 - [01 - Bootstrap Dev Environment](./01-bootstrap-dev.md)

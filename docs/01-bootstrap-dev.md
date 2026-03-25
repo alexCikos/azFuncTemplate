@@ -1,70 +1,50 @@
 # 01 - Bootstrap Dev Environment
 
-## 1) Prerequisites
+## Purpose
 
-Install and verify:
+Use this when you want Azure infrastructure created before the GitHub deployment runs.
 
-```bash
-node -v
-npm -v
-func --version
-az --version
-git --version
-```
+## Prerequisites
 
-Use Node 22 locally:
+- Node.js 22
+- npm
+- Azure CLI
+- Azure Functions Core Tools
 
-```bash
-nvm use
-```
+## Check the Parameter File
 
-If not installed:
+Edit `infra/main.parameters.dev.json` before bootstrapping:
 
-```bash
-nvm install 22
-nvm use 22
-```
+- `location`
+- `namePrefix`
+- `tags`
 
-## 2) One-Time Provider Registration (Per Subscription)
+The default values are intentionally generic so the template works out of the box.
+
+## Bootstrap Command
+
+Run:
 
 ```bash
-az account set --subscription <subscription-id>
-az provider register --namespace Microsoft.Storage
-az provider register --namespace Microsoft.Web
-az provider register --namespace Microsoft.ManagedIdentity
-az provider register --namespace Microsoft.KeyVault
-az provider register --namespace Microsoft.Insights
-az provider register --namespace Microsoft.OperationalInsights
-
-az provider show --namespace Microsoft.KeyVault --query registrationState -o tsv
+./scripts/bootstrap-environment.sh dev
 ```
 
-Expected: `Registered`.
-
-## 3) Fill Dev Parameters
-
-Edit:
-- `infra/main.parameters.dev.json`
-
-Set at minimum:
-- `namePrefix` (example: `acme-invoice`)
-- `environmentName` (`dev`)
-- `graphTenantId`
-- `graphClientId`
-- `graphClientSecretName` (default: `GRAPH-CLIENT-SECRET`)
-- `sharePointSiteId`
-- `sharePointListId`
-
-## 4) Bootstrap Dev Infra
+Optional subscription and resource-group overrides:
 
 ```bash
-./scripts/bootstrap-client.sh dev
+./scripts/bootstrap-environment.sh dev <subscription-id> <resource-group>
 ```
 
-This creates/updates dev infra and prints outputs.
+## What the Script Does
 
-## 5) Next
+1. Verifies Azure CLI access
+2. Creates the resource group if needed
+3. Deploys `infra/main.bicep`
+4. Prints the Function App host name
+5. Prints the GitHub environment variables you need next
+
+## Next Step
 
 Continue with:
-- [02 - GitHub OIDC Deployment Setup](./02-github-oidc-deploy.md)
 
+- [02 - GitHub OIDC Deployment](./02-github-oidc-deploy.md)

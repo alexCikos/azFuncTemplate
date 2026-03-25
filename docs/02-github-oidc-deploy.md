@@ -1,71 +1,50 @@
-# 02 - GitHub OIDC Deployment Setup
+# 02 - GitHub OIDC Deployment
 
-## 1) Create Deployment App Registration
+## Goal
 
-Create one per environment:
-- `gh-deployer-<client>-dev`
-- `gh-deployer-<client>-prod`
+Allow GitHub Actions to deploy to Azure without storing an Azure client secret in the repository.
+
+## Create a Deployment App Registration
+
+Create an Entra app registration for GitHub deployments. One per environment is the simplest setup:
+
+- `gh-deployer-hello-dev`
+- `gh-deployer-hello-prod`
 
 Capture:
-- `AZURE_CLIENT_ID`
-- `AZURE_TENANT_ID`
 
-If needed:
+- Application (client) ID
+- Directory (tenant) ID
+- Azure subscription ID
 
-```bash
-az ad sp create --id <AZURE_CLIENT_ID>
-```
+## Add Federated Credentials
 
-## 2) Add Federated Credentials
+In the app registration, add a federated credential for each GitHub environment and branch you want to trust.
 
-In each deployer app registration:
-- Add federated credential for GitHub Actions.
-- Subject examples:
-  - `repo:<org>/<repo>:environment:dev`
-  - `repo:<org>/<repo>:environment:prod`
+Recommended split:
 
-## 3) Grant Azure RBAC
+- `dev` environment for the `dev` branch
+- `prod` environment for the `main` branch
 
-Run once per environment:
+## Configure GitHub Environment Variables
 
-```bash
-az role assignment create \
-  --assignee <AZURE_CLIENT_ID> \
-  --role Contributor \
-  --scope /subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/<AZURE_RG>
+Create GitHub environments named `dev` and `prod`, then add:
 
-az role assignment list \
-  --assignee <AZURE_CLIENT_ID> \
-  --scope /subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/<AZURE_RG> \
-  -o table
-```
-
-## 4) Configure GitHub Environments
-
-`dev` environment variables:
 - `AZURE_CLIENT_ID`
 - `AZURE_TENANT_ID`
 - `AZURE_SUBSCRIPTION_ID`
 - `AZURE_RG`
 
-`prod` environment variables:
-- Same variable names, production values.
+## Deployment Workflows
 
-## 5) Deploy Dev
+Included workflows:
 
-```bash
-git checkout dev
-git push
-```
+- `.github/workflows/validate-template.yml`
+- `.github/workflows/deploy-dev.yml`
+- `.github/workflows/deploy-prod.yml`
 
-or first push:
-
-```bash
-git push -u origin dev
-```
-
-## 6) Next
+## Next Step
 
 Continue with:
-- [03 - Promote To Production](./03-promote-to-prod.md)
 
+- [03 - Promote to Production](./03-promote-to-prod.md)

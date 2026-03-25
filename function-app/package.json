@@ -1,9 +1,9 @@
 {
-  "name": "invoice-tracker-functions",
+  "name": "hello-world-function-template",
   "version": "1.0.0",
-  "description": "Azure Functions app for the Invoice Tracker demo",
+  "description": "Minimal Azure Functions Hello World template",
   "private": true,
-  "main": "dist/src/functions/*.js",
+  "main": "dist/src/functions/helloWorld.js",
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
@@ -12,11 +12,10 @@
     "clean": "rimraf dist",
     "prestart": "npm run clean && npm run build",
     "start": "func start",
-    "test": "echo \"No automated tests yet\""
+    "test": "npm run build && node --test tests/*.test.js"
   },
   "dependencies": {
-    "@azure/functions": "^4.0.0",
-    "axios": "^1.13.6"
+    "@azure/functions": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "18.x",

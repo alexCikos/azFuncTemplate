@@ -2,17 +2,17 @@
 
 set -euo pipefail
 
-# Quick bootstrap for a brand-new client environment.
+# Quick bootstrap for the Hello World template environment.
 # This script intentionally deploys with environment parameter files so local bootstrap
 # and GitHub Actions resolve the same Bicep values.
 #
 # Usage:
-#   ./scripts/bootstrap-client.sh <environment> [subscription-id] [resource-group]
+#   ./scripts/bootstrap-environment.sh <environment> [subscription-id] [resource-group]
 # Examples:
-#   ./scripts/bootstrap-client.sh dev
-#   ./scripts/bootstrap-client.sh prod
-#   ./scripts/bootstrap-client.sh dev 00000000-0000-0000-0000-000000000000
-#   ./scripts/bootstrap-client.sh prod 00000000-0000-0000-0000-000000000000 rg-acme-invoice-prod
+#   ./scripts/bootstrap-environment.sh dev
+#   ./scripts/bootstrap-environment.sh prod
+#   ./scripts/bootstrap-environment.sh dev 00000000-0000-0000-0000-000000000000
+#   ./scripts/bootstrap-environment.sh prod 00000000-0000-0000-0000-000000000000 rg-hello-template-prod
 
 if [[ $# -lt 1 || $# -gt 3 ]]; then
   echo "Usage: $0 <environment> [subscription-id] [resource-group]" >&2
@@ -105,18 +105,6 @@ FUNCTION_HOST_NAME=$(az deployment group show \
   --query "properties.outputs.functionAppDefaultHostName.value" \
   --output tsv)
 
-IDENTITY_CLIENT_ID=$(az deployment group show \
-  --name "$DEPLOYMENT_NAME" \
-  --resource-group "$RESOURCE_GROUP" \
-  --query "properties.outputs.identityClientId.value" \
-  --output tsv)
-
-KEY_VAULT_URI=$(az deployment group show \
-  --name "$DEPLOYMENT_NAME" \
-  --resource-group "$RESOURCE_GROUP" \
-  --query "properties.outputs.keyVaultUri.value" \
-  --output tsv)
-
 cat <<SUMMARY
 
 Bootstrap complete.
@@ -130,8 +118,6 @@ Resource group: $RESOURCE_GROUP
 Location: $LOCATION
 Function App: $FUNCTION_APP_NAME
 Function host: https://$FUNCTION_HOST_NAME
-User-assigned identity clientId: $IDENTITY_CLIENT_ID
-Key Vault URI: $KEY_VAULT_URI
 
 Set these GitHub Environment variables (environment: $ENVIRONMENT_NAME):
 - AZURE_CLIENT_ID=<deployment app registration client id>
@@ -143,4 +129,5 @@ Next:
 1. Configure federated credential for your repo + environment in Entra ID.
 2. Update the active parameter file when you need naming/tag/config changes: $PARAM_FILE.
 3. Push/merge to the target branch for this environment: $TARGET_BRANCH.
+4. Browse to https://$FUNCTION_HOST_NAME after the code deploy completes and confirm it returns Hello World.
 SUMMARY

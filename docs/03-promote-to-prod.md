@@ -1,47 +1,25 @@
-# 03 - Promote To Production
+# 03 - Promote to Prod
 
-## 1) Fill Prod Parameters
+## Recommended Flow
 
-Edit:
-- `infra/main.parameters.prod.json`
+1. Confirm the `dev` deployment returns `Hello World`
+2. Copy any final naming or tag changes into `infra/main.parameters.prod.json`
+3. Create the `prod` GitHub environment if you have not already
+4. Push or merge to `main`
 
-Set:
-- `environmentName` = `prod`
-- `graphTenantId`
-- `graphClientId` (prod runtime app ID)
-- `graphClientSecretName`
-- `sharePointSiteId`
-- `sharePointListId` (prod list)
+## Production Checks
 
-## 2) Bootstrap Prod Infra
+Before promoting:
 
-```bash
-./scripts/bootstrap-client.sh prod
+- `function-app` builds locally
+- `npm test` passes
+- `az bicep build --file infra/main.bicep` succeeds
+- The `dev` deployment is reachable in a browser
+
+## After Deployment
+
+Open the production Function App host name and confirm it returns:
+
+```text
+Hello World
 ```
-
-## 3) Ensure Prod GitHub Environment Exists
-
-Set:
-- `AZURE_CLIENT_ID`
-- `AZURE_TENANT_ID`
-- `AZURE_SUBSCRIPTION_ID`
-- `AZURE_RG` (prod RG)
-
-## 4) Merge Dev -> Main
-
-```bash
-git checkout main
-git pull origin main
-git merge dev
-git push origin main
-```
-
-## 5) Why `pull` Here?
-
-`git pull origin main` ensures local `main` has latest remote commits before merge, so you do not merge into stale history.
-
-## 6) Next
-
-Continue with:
-- [04 - Graph + SharePoint Integration](./04-graph-sharepoint-integration.md)
-

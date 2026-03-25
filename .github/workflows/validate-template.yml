@@ -21,17 +21,17 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: invoice-tracker-functions/package-lock.json
+          cache-dependency-path: function-app/package-lock.json
 
       - name: Install dependencies
-        working-directory: invoice-tracker-functions
+        working-directory: function-app
         run: npm ci
 
-      - name: TypeScript checks
-        working-directory: invoice-tracker-functions
+      - name: Validate function app
+        working-directory: function-app
         run: |
           npm run typecheck
-          npm run build
+          npm test
 
       - name: Validate Bicep syntax
         uses: azure/cli@v2

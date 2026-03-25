@@ -1,4 +1,4 @@
-name: Deploy Dev (Infra + Function)
+name: Deploy Dev Hello World Template
 
 on:
   push:
@@ -22,6 +22,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: function-app/package-lock.json
+
+      - name: Install + validate function
+        working-directory: function-app
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+          # Keep deployment package small and production-focused.
+          npm prune --omit=dev
+
       - name: Azure login (OIDC)
         uses: azure/login@v2
         with:
@@ -34,8 +50,7 @@ jobs:
         env:
           AZURE_CORE_OUTPUT: none
         run: |
-          # Deploy infra first, then pull the function app name from Bicep outputs
-          # so app deploy always targets the exact resource created by IaC.
+          # Deploy infra only after the app has passed validation checks.
           FUNCTION_APP_NAME=$(az deployment group create \
             -g "${{ vars.AZURE_RG }}" \
             -f infra/main.bicep \
@@ -50,25 +65,10 @@ jobs:
 
           echo "FUNCTION_APP_NAME=$FUNCTION_APP_NAME" >> "$GITHUB_ENV"
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: invoice-tracker-functions/package-lock.json
-
-      - name: Install + build function
-        working-directory: invoice-tracker-functions
-        run: |
-          npm ci
-          npm run build
-          # Keep deployment package small and production-focused.
-          npm prune --omit=dev
-
       # Create a deterministic deployable artifact
       - name: Create deployment package (zip)
         run: |
-          cd invoice-tracker-functions
+          cd function-app
           zip -r ../functionapp.zip host.json package.json package-lock.json dist node_modules \
             -x "**/.git/**" \
             -x "**/.github/**" \
