@@ -21,8 +21,19 @@ Check:
 Check:
 
 - GitHub environment variables are set correctly
+- The repository variable `ENABLE_AZURE_DEPLOY` is set to `true`
 - The OIDC federated credential matches the branch and environment
 - `AZURE_RG` points at the resource group created by the bootstrap script
+
+## GitHub Actions deployment is skipped
+
+Check whether this is still a fresh template repo.
+
+The deploy jobs intentionally stay inactive until:
+
+- Azure has been configured
+- GitHub `dev` and `prod` environments exist
+- the repository variable `ENABLE_AZURE_DEPLOY` is set to `true`
 
 ## Bicep validation fails
 

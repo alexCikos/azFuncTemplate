@@ -35,6 +35,16 @@ Create GitHub environments named `dev` and `prod`, then add:
 - `AZURE_SUBSCRIPTION_ID`
 - `AZURE_RG`
 
+## Enable Deployment After Setup
+
+Leave deployment disabled while the repo is still acting as a template or before Azure is ready.
+
+When the Azure side is configured, create this repository variable:
+
+- `ENABLE_AZURE_DEPLOY=true`
+
+Until that variable exists, pushes to `dev` and `main` will skip the deploy job instead of failing.
+
 ## Deployment Workflows
 
 Included workflows:

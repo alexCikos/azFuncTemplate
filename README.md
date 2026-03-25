@@ -57,6 +57,8 @@ http://localhost:7071/
 
 ## Deploy to Azure
 
+Fresh template repos are safe to push immediately. The deploy workflows stay inactive until you finish the Azure setup and set the repository variable `ENABLE_AZURE_DEPLOY=true`.
+
 1. Update `infra/main.parameters.dev.json` and `infra/main.parameters.prod.json`
 2. Bootstrap the target environment:
 
@@ -64,7 +66,7 @@ http://localhost:7071/
    ./scripts/bootstrap-environment.sh dev
    ```
 
-3. Configure GitHub OIDC and environment variables
+3. Configure GitHub OIDC, GitHub environment variables, and the repository variable `ENABLE_AZURE_DEPLOY=true`
 4. Push to `dev` for the development deployment, then `main` for production
 
 ## Docs Map

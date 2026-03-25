@@ -14,7 +14,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+
+    steps:
+      - name: Check whether Azure deployment is enabled
+        id: check
+        run: |
+          if [ "${{ vars.ENABLE_AZURE_DEPLOY }}" = "true" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Azure deployment is enabled for this repository."
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Azure deployment is disabled for this template repository. Configure Azure + GitHub environments, then set the repository variable ENABLE_AZURE_DEPLOY=true to turn on dev deployments."
+          fi
+
   deploy:
+    needs: preflight
+    if: ${{ needs.preflight.outputs.enabled == 'true' }}
     runs-on: ubuntu-latest
     environment: dev
 
