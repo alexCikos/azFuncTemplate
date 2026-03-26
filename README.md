@@ -8,6 +8,7 @@ This repository is a reusable Azure Functions skeleton. It deploys a minimal Typ
 - Bicep infrastructure for Storage, Function App, Log Analytics, and Application Insights
 - GitHub Actions deployment for `dev` and `main` using OIDC
 - A bootstrap script for first-time resource-group setup
+- A deployer identity helper script for Entra app registration, federated credential, and role assignment
 - Optional Microsoft Graph token utility and runtime app settings
 - A tiny test suite that validates the starter response
 
@@ -32,6 +33,7 @@ http://localhost:7071/
 - `.github/workflows/` validation and deployment workflows
 - `skills/azure-function-template-setup/` source-controlled Codex setup skill for this template
 - `scripts/bootstrap-environment.sh` one-command infrastructure bootstrap
+- `scripts/create-deployer-app.sh` one-command deployer identity setup for GitHub Actions OIDC
 - `scripts/install-codex-skill.sh` install the repo skill into your local Codex skills folder
 - `docs/` setup, deployment, local-development, and customization guides
 
@@ -85,8 +87,21 @@ Fresh template repos are safe to push immediately. The deploy workflows stay ina
    ./scripts/bootstrap-environment.sh dev
    ```
 
-3. Configure GitHub OIDC, GitHub environment variables, and the repository variable `ENABLE_AZURE_DEPLOY=true`
-4. Push to `dev` for the development deployment, then `main` for production
+3. Create or update the deployer app registration, federated credential, and role assignment:
+
+   ```bash
+   ./scripts/create-deployer-app.sh dev
+   ```
+
+4. Configure GitHub environment variables and the repository variable `ENABLE_AZURE_DEPLOY=true`
+   You can do the GitHub-side setup in the UI or with GitHub CLI (`gh`).
+5. Push to `dev` for the development deployment, then `main` for production
+
+If Git pushes fail after authenticating with `gh`, run:
+
+```bash
+gh auth setup-git
+```
 
 ## Docs Map
 

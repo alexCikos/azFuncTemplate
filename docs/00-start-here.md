@@ -15,7 +15,7 @@ Deployment path:
 
 1. Push to `dev` or `main`
 2. GitHub Actions checks whether deployment has been explicitly enabled for this repo
-3. After setup is complete and `ENABLE_AZURE_DEPLOY=true`, GitHub Actions logs into Azure through OIDC
+3. After setup is complete, GitHub Actions logs into Azure through OIDC using the deployer app registration
 4. Bicep deploys or updates the Function App infrastructure
 5. The function app is built, zipped, and deployed
 
@@ -32,6 +32,18 @@ The template is working when both of these succeed:
 - `https://<your-function-host>/` returns `Hello World` after deployment
 
 Fresh template pushes are expected to skip deployment until Azure setup is finished.
+
+## Before You Bootstrap
+
+Before creating Azure resources, resolve the parameter decisions that shape naming and ownership:
+
+- `namePrefix` for resource names
+- Azure region
+- whether optional Graph settings stay blank for now
+- tags such as `application`, `owner`, and `purpose`
+- subscription and resource-group choices for `dev` and `prod`
+
+When using the repo skill, prefer resolving these one question at a time with a recommended answer before editing the parameter files.
 
 ## Reading Order
 

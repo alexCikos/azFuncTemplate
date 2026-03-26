@@ -30,6 +30,7 @@ Inspect these files when the task moves into execution or troubleshooting:
 - `infra/main.parameters.dev.json`
 - `infra/main.parameters.prod.json`
 - `scripts/bootstrap-environment.sh`
+- `scripts/create-deployer-app.sh`
 - `.github/workflows/validate-template.yml`
 - `.github/workflows/deploy-dev.yml`
 - `.github/workflows/deploy-prod.yml`
@@ -82,8 +83,24 @@ Use this phase before cloud deployment when local confidence is missing.
 
 ### 4. Guide Azure Bootstrap
 
-Review `infra/main.parameters.dev.json` or `infra/main.parameters.prod.json` with the user before running anything.
+Before editing `infra/main.parameters.dev.json` or `infra/main.parameters.prod.json`, run a short decision interview.
+Ask one concise question at a time, provide a recommended answer, and only ask questions that truly require user judgment.
+If a question can be answered from workspace state, inspect the repo instead of asking.
+
+Resolve these decisions before editing the parameter files:
+
+- workload/app name and `namePrefix`
+- Azure region for `dev` and `prod`
+- whether optional Graph settings stay blank for now
+- ownership and purpose tags such as `application`, `owner`, and `purpose`
+- Azure subscription ID for `dev`
+- whether `prod` uses the same subscription
+- whether to accept the default resource-group names
+- whether to update just `dev` or both `dev` and `prod`
+
+Then review the selected parameter file values with the user before running anything.
 Explain what `location`, `namePrefix`, and `tags` control.
+When the user wants active help, edit the parameter files after the interview and restate the final values before bootstrap.
 Use `./scripts/bootstrap-environment.sh <env> [subscription-id] [resource-group]` for first-time environment creation.
 
 After a successful bootstrap, capture and restate:
@@ -103,7 +120,28 @@ Walk the user through:
 - setting the repository variable `ENABLE_AZURE_DEPLOY=true` only after Azure and GitHub environments are ready
 - understanding which workflow deploys which branch
 
+When the workspace includes `scripts/create-deployer-app.sh`, prefer using it for deployment app registration, federated credential setup, and Contributor assignment on the target resource group.
+If the repo remote is not configured yet, pass `--repo <owner>/<repo>` or help the user add the remote first.
+
+When Azure CLI is available, prefer using it for deployment app registration and federated credential setup instead of sending the user to the Azure UI.
+Capture the client ID, tenant ID, subscription ID, and intended GitHub environment/branch trust mapping before moving on.
+
+When GitHub CLI is available, prefer using it for repository environment setup and variable management.
+Check whether `gh` is installed and authenticated.
+If it is, prefer commands like:
+
+- `gh auth status`
+- `gh auth setup-git`
+- `gh api --method PUT repos/<owner>/<repo>/environments/<env>`
+- `gh variable set ... --env <env>`
+- `gh variable list --env <env>`
+- `gh variable set ENABLE_AZURE_DEPLOY --body true`
+
+If Git pushes fail after `gh auth login`, try `gh auth setup-git` before assuming the token or remote is wrong.
+If `gh` is not available, fall back to the GitHub web UI guidance.
+
 Use the workflow files to explain how deployment works.
+Use the current workflow environment names when reasoning about OIDC subjects: this template trusts `repo:<owner>/<repo>:environment:dev` and `repo:<owner>/<repo>:environment:prod`.
 
 ### 6. Guide Deployment Verification
 
@@ -126,6 +164,10 @@ Then help the user:
 - promote from `dev` to `main`
 - verify the production Function App root URL returns `Hello World`
 
+Before recommending a merge or push to `main`, inspect branch history.
+If `main` and `dev` are unrelated histories, stop and explain the mismatch.
+Ask for explicit confirmation before using `git push --force-with-lease origin dev:main` to replace `main` with the current `dev` history in a fresh repo.
+
 ### 8. Troubleshoot from Workspace State
 
 Inspect the live workspace first and then use `docs/06-troubleshooting.md`.
@@ -139,6 +181,7 @@ Ask for explicit confirmation before:
 - `az login`
 - any `az` command that creates, updates, or deletes Azure resources
 - running `scripts/bootstrap-environment.sh`
+- running `scripts/create-deployer-app.sh`
 - editing `infra/main.parameters.*.json`
 - pushing or merging branches
 - changing GitHub environment settings

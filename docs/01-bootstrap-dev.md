@@ -21,6 +21,18 @@ Edit `infra/main.parameters.dev.json` before bootstrapping:
 
 The default values are intentionally generic so the template works out of the box.
 
+Recommended review order:
+
+1. choose a workload-specific `namePrefix`
+2. confirm the Azure region
+3. decide whether Graph settings stay blank for now
+4. confirm tags such as `application`, `owner`, and `purpose`
+5. confirm the Azure subscription ID
+6. confirm whether to use the default resource-group name `rg-<namePrefix>-dev`
+
+If an answer can be learned from the workspace, inspect the repo first instead of asking the user.
+Ask one concise question at a time, give a recommended answer, then update the parameter file only after the values are settled.
+
 ## Bootstrap Command
 
 Run:

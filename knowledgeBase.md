@@ -32,6 +32,8 @@ This repository is intentionally minimal. It exists to prove that:
   - Source-controlled Codex setup skill for this template
 - `scripts/bootstrap-environment.sh`
   - Resource-group bootstrap helper
+- `scripts/create-deployer-app.sh`
+  - Creates or reuses the deployer Entra app registration, federated credential, and Contributor role assignment
 - `scripts/install-codex-skill.sh`
   - Installs the repo skill into the user's Codex skills folder
 - `.azure/plan.md`
@@ -42,7 +44,7 @@ This repository is intentionally minimal. It exists to prove that:
 ```mermaid
 flowchart LR
   A["Push to dev or main"] --> B["GitHub Actions"]
-  B --> C["OIDC login to Azure"]
+  B --> C["OIDC login to Azure via deployer app"]
   C --> D["Deploy infra/main.bicep"]
   D --> E["Build function-app"]
   E --> F["Zip artifact"]
@@ -50,6 +52,9 @@ flowchart LR
   G --> H["Browse to root URL"]
   H --> I["Hello World"]
 ```
+
+When using Codex for setup, prefer `./scripts/create-deployer-app.sh <env>` or Azure CLI for the deployment app registration and federated credential steps, and GitHub CLI for repository environment setup.
+If HTTPS pushes fail after GitHub CLI auth, run `gh auth setup-git`.
 
 ## Runtime Flow
 
