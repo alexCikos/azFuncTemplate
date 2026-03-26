@@ -39,10 +39,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -58,7 +58,7 @@ jobs:
           npm prune --omit=dev
 
       - name: Azure login (OIDC)
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
@@ -117,7 +117,7 @@ jobs:
       - name: Smoke test deployed app
         run: |
           for attempt in 1 2 3 4 5 6 7 8; do
-            RESPONSE=$(curl -fsS --max-time 20 "https://${FUNCTION_HOST_NAME}/" || true)
+            RESPONSE=$(curl -fsS --max-time 20 "https://${FUNCTION_HOST_NAME}/helloworld" || true)
 
             if [ "$RESPONSE" = "Hello World" ]; then
               echo "Smoke test passed."
@@ -128,5 +128,5 @@ jobs:
             sleep 15
           done
 
-          echo "Smoke test failed. Expected 'Hello World' from https://${FUNCTION_HOST_NAME}/" >&2
+          echo "Smoke test failed. Expected 'Hello World' from https://${FUNCTION_HOST_NAME}/helloworld" >&2
           exit 1

@@ -6,7 +6,7 @@ This template gives you a minimal Azure Functions baseline:
 
 - Deploy infrastructure with Bicep
 - Deploy code from GitHub with OIDC
-- Return `Hello World` from the root URL
+- Return `Hello World` from the `/helloworld` endpoint
 - Give you a clean place to start building real features
 
 ## Architecture Mental Model
@@ -21,15 +21,15 @@ Deployment path:
 
 Runtime path:
 
-1. Azure receives an anonymous HTTP request on `/`
+1. Azure receives an anonymous HTTP request on `/helloworld`
 2. The function returns plain text `Hello World`
 
 ## Success Check
 
 The template is working when both of these succeed:
 
-- `http://localhost:7071/` returns `Hello World`
-- `https://<your-function-host>/` returns `Hello World` after deployment
+- `http://localhost:7071/helloworld` returns `Hello World`
+- `https://<your-function-host>/helloworld` returns `Hello World` after deployment
 
 Fresh template pushes are expected to skip deployment until Azure setup is finished.
 

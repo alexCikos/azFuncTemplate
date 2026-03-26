@@ -129,5 +129,5 @@ Next:
 1. Configure federated credential for your repo + environment in Entra ID.
 2. Update the active parameter file when you need naming/tag/config changes: $PARAM_FILE.
 3. Push/merge to the target branch for this environment: $TARGET_BRANCH.
-4. Browse to https://$FUNCTION_HOST_NAME after the code deploy completes and confirm it returns Hello World.
+4. Browse to https://$FUNCTION_HOST_NAME/helloworld after the code deploy completes and confirm it returns Hello World.
 SUMMARY

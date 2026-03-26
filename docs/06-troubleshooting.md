@@ -8,12 +8,12 @@ Check:
 - Azure Functions Core Tools is installed: `func --version`
 - `function-app/local.settings.json` exists
 
-## The root URL does not return `Hello World`
+## The `/helloworld` endpoint does not return `Hello World`
 
 Check:
 
 - `function-app/host.json` keeps `"routePrefix": ""`
-- `function-app/src/functions/helloWorld.ts` still registers `route: ""`
+- `function-app/src/functions/helloWorld.ts` still registers `route: "helloworld"`
 - The app was rebuilt after changes: `npm run build`
 
 ## GitHub Actions deployment fails before code deploy

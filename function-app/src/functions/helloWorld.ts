@@ -30,6 +30,6 @@ export async function helloWorldHandler(
 app.http("helloWorld", {
   methods: ["GET"],
   authLevel: "anonymous",
-  route: "",
+  route: "helloworld",
   handler: helloWorldHandler,
 });

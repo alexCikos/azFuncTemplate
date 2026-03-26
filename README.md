@@ -1,6 +1,6 @@
 # Azure Functions Hello World Template
 
-This repository is a reusable Azure Functions skeleton. It deploys a minimal TypeScript Function App to Azure, exposes the root URL `/`, and returns plain-text `Hello World` so you can confirm the platform works before layering on real features.
+This repository is a reusable Azure Functions skeleton. It deploys a minimal TypeScript Function App to Azure, exposes the `GET /helloworld` endpoint, and returns plain-text `Hello World` so you can confirm the platform works before layering on real features.
 
 ## What You Get
 
@@ -14,7 +14,7 @@ This repository is a reusable Azure Functions skeleton. It deploys a minimal Typ
 
 ## Runtime Behavior
 
-After deployment, browsing to the Function App host returns:
+After deployment, browsing to the Function App host at `/helloworld` returns:
 
 ```text
 Hello World
@@ -23,7 +23,7 @@ Hello World
 Locally, the same response is available at:
 
 ```text
-http://localhost:7071/
+http://localhost:7071/helloworld
 ```
 
 ## Repository Layout
@@ -54,10 +54,10 @@ http://localhost:7071/
    npm start
    ```
 
-3. Open [http://localhost:7071/](http://localhost:7071/) or run:
+3. Open [http://localhost:7071/helloworld](http://localhost:7071/helloworld) or run:
 
    ```bash
-   curl http://localhost:7071/
+   curl http://localhost:7071/helloworld
    ```
 
 ## Codex Skill

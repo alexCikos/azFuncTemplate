@@ -2,7 +2,7 @@
 
 ## Recommended Flow
 
-1. Confirm the `dev` deployment returns `Hello World`
+1. Confirm the `dev` deployment returns `Hello World` at `/helloworld`
 2. Copy any final naming or tag changes into `infra/main.parameters.prod.json`
 3. Create the `prod` deployer app registration, federated credential, and GitHub environment if you have not already
    Recommended command: `./scripts/create-deployer-app.sh prod`
@@ -34,7 +34,7 @@ Use that only when you explicitly want `main` to become the current `dev` deploy
 
 ## After Deployment
 
-Open the production Function App host name and confirm it returns:
+Open the production Function App host name at `/helloworld` and confirm it returns:
 
 ```text
 Hello World

@@ -17,12 +17,12 @@ npm start
 
 Open:
 
-- `http://localhost:7071/`
+- `http://localhost:7071/helloworld`
 
 Or test with:
 
 ```bash
-curl http://localhost:7071/
+curl http://localhost:7071/helloworld
 ```
 
 Expected result:

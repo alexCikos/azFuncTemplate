@@ -77,7 +77,7 @@ Walk the user through:
 - `npm ci`
 - copy `local.settings.sample.json` to `local.settings.json`
 - `npm start`
-- verify `http://localhost:7071/` returns `Hello World`
+- verify `http://localhost:7071/helloworld` returns `Hello World`
 
 Use this phase before cloud deployment when local confidence is missing.
 
@@ -151,7 +151,7 @@ Before recommending a push, confirm:
 - `az bicep build --file infra/main.bicep` passes
 - dev parameters are final enough to deploy
 
-After deployment, verify success by checking that the Function App root URL returns `Hello World`.
+After deployment, verify success by checking that the Function App `/helloworld` URL returns `Hello World`.
 If deployment is still disabled, explain that skipped deploy jobs are expected until `ENABLE_AZURE_DEPLOY=true` is configured.
 
 ### 7. Guide Production Promotion
@@ -162,7 +162,7 @@ Then help the user:
 - review `infra/main.parameters.prod.json`
 - confirm the `prod` GitHub environment exists
 - promote from `dev` to `main`
-- verify the production Function App root URL returns `Hello World`
+- verify the production Function App `/helloworld` URL returns `Hello World`
 
 Before recommending a merge or push to `main`, inspect branch history.
 If `main` and `dev` are unrelated histories, stop and explain the mismatch.
@@ -200,7 +200,7 @@ When the user only wants guidance, do not execute cloud actions.
 
 Treat setup as complete when:
 
-- local `http://localhost:7071/` returns `Hello World`, or the user explicitly skips local testing
+- local `http://localhost:7071/helloworld` returns `Hello World`, or the user explicitly skips local testing
 - the target Azure environment is bootstrapped
 - GitHub OIDC variables are configured for the chosen environment
-- the deployed Function App root URL returns `Hello World`
+- the deployed Function App `/helloworld` URL returns `Hello World`

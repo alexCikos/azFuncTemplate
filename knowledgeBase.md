@@ -17,7 +17,7 @@ This repository is intentionally minimal. It exists to prove that:
 
 1. Infrastructure can be deployed repeatably with Bicep
 2. GitHub Actions can deploy to Azure through OIDC
-3. The root Function App URL can return `Hello World`
+3. The `/helloworld` Function App endpoint can return `Hello World`
 4. Future features can be added on top of a clean baseline
 
 ## Repository Layout
@@ -49,7 +49,7 @@ flowchart LR
   D --> E["Build function-app"]
   E --> F["Zip artifact"]
   F --> G["Deploy Function App package"]
-  G --> H["Browse to root URL"]
+  G --> H["Browse to /helloworld"]
   H --> I["Hello World"]
 ```
 
@@ -60,7 +60,7 @@ If HTTPS pushes fail after GitHub CLI auth, run `gh auth setup-git`.
 
 ```mermaid
 flowchart LR
-  A["GET /"] --> B["helloWorld handler"]
+  A["GET /helloworld"] --> B["helloWorld handler"]
   B --> C["Return plain text"]
   C --> D["Hello World"]
 ```
@@ -70,7 +70,7 @@ flowchart LR
 - Runtime: Azure Functions v4 on Node 22
 - Hosting: Linux Consumption plan
 - Observability: Application Insights backed by Log Analytics
-- Route shape: root path `/`
+- Route shape: `/helloworld`
 - Auth for the starter endpoint: anonymous
 
 ## Recommended First Extension
